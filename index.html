@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>משחקי למידה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --box:#14203C; --paper:#FBFAF3; --paper-edge:#E3DFD1; --ink:#12151C;
+  --gold:#D8A62A; --dim:#9BA9C6;
+  --serif:"Frank Ruhl Libre","Narkisim","David",Georgia,serif;
+  --sans:"Heebo","Arial Hebrew","Noto Sans Hebrew",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;font-family:var(--sans);line-height:1.6;color:var(--paper);
+  background:radial-gradient(120% 80% at 50% -10%, #24365F 0%, rgba(36,54,95,0) 60%), var(--box);
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:680px;margin:0 auto;padding:40px 20px 70px}
+.slot{width:118px;height:12px;margin:0 auto 18px;border-radius:2px;background:#0C1428;
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.8), 0 1px 0 rgba(255,255,255,.08)}
+h1{font-family:var(--serif);font-weight:900;font-size:clamp(30px,6.4vw,44px);
+  text-align:center;margin:0 0 8px;letter-spacing:-.5px}
+.sub{text-align:center;color:var(--dim);font-size:15.5px;margin:0 auto 34px;max-width:46ch}
+.card{display:block;text-decoration:none;background:var(--paper);color:var(--ink);
+  border:1px solid var(--paper-edge);border-radius:5px;padding:20px 22px;margin-bottom:14px;
+  box-shadow:0 4px 0 rgba(0,0,0,.25);transition:transform .1s ease, box-shadow .15s ease}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 0 rgba(0,0,0,.28)}
+.card h2{font-family:var(--serif);font-weight:900;font-size:23px;margin:0 0 6px}
+.card p{margin:0;font-size:15px;color:#57544A}
+.card .tag{display:inline-block;margin-top:12px;font-size:12.5px;background:#F2EFE4;
+  border:1px solid var(--paper-edge);border-radius:999px;padding:4px 11px;color:#57544A}
+.foot{margin-top:36px;text-align:center;font-size:12.5px;color:#6C7B99;line-height:1.8}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="slot" aria-hidden="true"></div>
+  <h1>משחקי למידה</h1>
+  <p class="sub">משחקים קצרים לתרגול חומר לימוד, לשימוש בכיתה ובבית.</p>
+
+  <a class="card" href="ezrahut.html">
+    <h2>פתק לכל מושג</h2>
+    <p>משחק מושגים באזרחות לבגרות, תשפ"ז. קוראים הגדרה ומצביעים למושג הנכון, לפי פרקים ולפי אורך סיבוב.</p>
+    <span class="tag">אזרחות · חטיבה עליונה</span>
+  </a>
+</div>
+</body>
+</html>
