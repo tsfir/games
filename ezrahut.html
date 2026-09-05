@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>פתק לכל מושג — משחק מושגים באזרחות</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --box:#14203C;        /* כחול הקלפי */
+  --box-2:#1E2E52;
+  --paper:#FBFAF3;      /* פתק הצבעה */
+  --paper-edge:#E3DFD1;
+  --ink:#12151C;
+  --stamp-red:#B5322A;
+  --stamp-green:#2C6E52;
+  --gold:#D8A62A;
+  --dim:#9BA9C6;
+  --serif:"Frank Ruhl Libre","Narkisim","David",Georgia,serif;
+  --sans:"Heebo","Arial Hebrew","Noto Sans Hebrew",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(120% 80% at 50% -10%, #24365F 0%, rgba(36,54,95,0) 60%),
+    var(--box);
+  color:var(--paper);
+  font-family:var(--sans);
+  min-height:100vh;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:760px;margin:0 auto;padding:28px 20px 64px}
+
+/* ---------- כותרת ---------- */
+.masthead{text-align:center;margin-bottom:26px}
+.slot{
+  width:118px;height:12px;margin:0 auto 18px;border-radius:2px;
+  background:#0C1428;box-shadow:inset 0 2px 5px rgba(0,0,0,.8), 0 1px 0 rgba(255,255,255,.08);
+}
+h1{
+  font-family:var(--serif);font-weight:900;
+  font-size:clamp(30px,6.4vw,46px);line-height:1.12;letter-spacing:-.5px;
+  margin:0 0 8px;color:var(--paper);
+}
+.sub{color:var(--dim);font-size:15.5px;margin:0 auto;max-width:46ch}
+
+/* ---------- לוח פתיחה ---------- */
+.panel{
+  background:linear-gradient(180deg,var(--box-2),#182645);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:14px;padding:22px;margin-top:24px;
+}
+.panel h2{font-family:var(--serif);font-size:21px;margin:0 0 4px;font-weight:700}
+.panel p.hint{margin:0 0 14px;color:var(--dim);font-size:14px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{
+  font-family:var(--sans);font-size:13.5px;font-weight:400;
+  background:rgba(255,255,255,.05);color:var(--paper);
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:999px;padding:6px 12px;cursor:pointer;
+  transition:background .12s ease,border-color .12s ease;
+}
+.chip:hover{background:rgba(255,255,255,.12)}
+.chip[aria-pressed="true"]{background:var(--gold);color:#1A1405;border-color:var(--gold);font-weight:600}
+.chip.all[aria-pressed="true"]{background:var(--paper);color:var(--ink);border-color:var(--paper)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:18px}
+.row .lbl{font-size:14px;color:var(--dim)}
+.seg{display:flex;border:1px solid rgba(255,255,255,.16);border-radius:8px;overflow:hidden}
+.seg button{
+  background:transparent;border:0;color:var(--paper);font-family:var(--sans);
+  font-size:14px;padding:7px 15px;cursor:pointer
+}
+.seg button[aria-pressed="true"]{background:var(--paper);color:var(--ink);font-weight:600}
+.go{
+  display:block;width:100%;margin-top:22px;
+  background:var(--gold);color:#1A1405;border:0;border-radius:10px;
+  font-family:var(--serif);font-weight:900;font-size:21px;padding:15px;
+  cursor:pointer;box-shadow:0 6px 0 #A77E16;
+}
+.go:active{transform:translateY(3px);box-shadow:0 3px 0 #A77E16}
+.go:disabled{opacity:.45;cursor:not-allowed;box-shadow:0 6px 0 #A77E16}
+
+/* ---------- סרגל משחק ---------- */
+.hud{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.hud .grp{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--dim)}
+.miss{font-size:13px;color:var(--dim)}
+.restart{background:transparent;border:1px solid rgba(255,255,255,.22);color:var(--dim);
+  border-radius:999px;padding:5px 11px;font-family:var(--sans);font-size:12.5px;cursor:pointer}
+.restart:hover{border-color:rgba(255,255,255,.45);color:var(--paper)}
+.restart:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.score{font-family:var(--serif);font-weight:900;font-size:24px;color:var(--gold);line-height:1}
+.streak{font-size:13px;color:var(--gold)}
+.bar{height:4px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden;margin-bottom:20px}
+.bar i{display:block;height:100%;background:var(--paper);width:0;transition:width .3s ease}
+
+/* ---------- כרטיס ההגדרה ---------- */
+.card{
+  background:var(--paper);color:var(--ink);border-radius:4px;
+  padding:26px 24px;position:relative;
+  box-shadow:0 14px 30px rgba(0,0,0,.35);
+}
+.card::after{
+  content:"";position:absolute;inset-inline:0;bottom:-6px;height:6px;
+  background:repeating-linear-gradient(90deg,var(--paper) 0 9px,transparent 9px 18px);
+}
+.qkicker{font-size:13px;color:#6C6A60;margin:0 0 8px}
+.qtext{font-family:var(--serif);font-size:clamp(18px,3.2vw,23px);line-height:1.5;margin:0;font-weight:500}
+
+/* ---------- פתקי הצבעה ---------- */
+.slips{display:flex;flex-direction:column;gap:10px;margin-top:22px}
+.slip{
+  display:flex;align-items:stretch;gap:0;width:100%;text-align:right;
+  background:var(--paper);color:var(--ink);border:1px solid var(--paper-edge);
+  border-radius:3px;cursor:pointer;font-family:var(--sans);font-size:17px;
+  padding:0;overflow:hidden;position:relative;
+  transition:transform .1s ease, box-shadow .15s ease;
+  box-shadow:0 3px 0 rgba(0,0,0,.25);
+}
+.slip .letter{
+  flex:0 0 52px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-weight:900;font-size:26px;
+  border-inline-end:1px solid var(--paper-edge);background:#F2EFE4;
+}
+.slip .name{padding:14px 16px;font-weight:600;align-self:center}
+.slip.stamped .name{padding-inline-end:104px}
+.slip.list .name{font-weight:500;font-size:15.5px;line-height:1.5;padding-block:12px}
+.slip.list .letter{align-items:center}
+.slip:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 0 rgba(0,0,0,.28)}
+.slip:disabled{cursor:default}
+.slip:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.slip.right{background:#EAF4EE;border-color:var(--stamp-green)}
+.slip.wrong{background:#F7EAE9;border-color:var(--stamp-red);opacity:.95}
+.slip.fade{opacity:.42}
+.stamp{
+  position:absolute;inset-inline-end:14px;top:50%;
+  font-family:var(--serif);font-weight:900;font-size:19px;
+  border:3px double currentColor;border-radius:5px;padding:1px 10px;
+  transform:translateY(-50%) rotate(-11deg) scale(2.4);opacity:0;
+  animation:thud .32s ease-out forwards;
+}
+.stamp.ok{color:var(--stamp-green)}
+.stamp.no{color:var(--stamp-red)}
+@keyframes thud{to{opacity:.92;transform:translateY(-50%) rotate(-11deg) scale(1)}}
+
+/* ---------- הרחבה אחרי תשובה ---------- */
+.reveal{margin-top:18px;border-inline-start:3px solid var(--gold);padding:2px 16px}
+.reveal h3{font-family:var(--serif);font-size:20px;margin:0 0 2px}
+.reveal .where{font-size:13px;color:var(--dim);margin:0 0 10px}
+.reveal ul{margin:0;padding-inline-start:18px}
+.reveal li{font-size:15px;color:#DCE3F2;margin-bottom:6px}
+.next{
+  margin-top:18px;width:100%;background:var(--paper);color:var(--ink);border:0;
+  border-radius:10px;font-family:var(--serif);font-weight:900;font-size:19px;
+  padding:13px;cursor:pointer;box-shadow:0 5px 0 #B9B4A3;
+}
+.next:active{transform:translateY(2px);box-shadow:0 3px 0 #B9B4A3}
+
+/* ---------- תוצאות ---------- */
+.result-num{font-family:var(--serif);font-weight:900;font-size:64px;line-height:1;color:var(--gold);margin:6px 0}
+.verdict{font-family:var(--serif);font-size:22px;margin:0 0 4px}
+.missed{margin-top:22px}
+.missed h3{font-family:var(--serif);font-size:19px;margin:0 0 10px}
+.missed .item{background:rgba(255,255,255,.05);border-radius:8px;padding:12px 14px;margin-bottom:8px}
+.missed .item b{font-family:var(--serif);font-size:17px}
+.missed .item p{margin:4px 0 0;font-size:14.5px;color:#CBD5EA}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.btns button{flex:1 1 180px;border:0;border-radius:10px;padding:13px;cursor:pointer;
+  font-family:var(--serif);font-weight:900;font-size:18px}
+.btn-gold{background:var(--gold);color:#1A1405;box-shadow:0 5px 0 #A77E16}
+.btn-ghost{background:transparent;color:var(--paper);border:1px solid rgba(255,255,255,.28)!important}
+.hidden{display:none}
+.foot{margin-top:34px;text-align:center;font-size:12.5px;color:#6C7B99;line-height:1.7}
+
+
+/* ---------- מסך ברוכים הבאים ---------- */
+.welcome{
+  background:var(--paper);color:var(--ink);border-radius:6px;
+  padding:38px 26px 32px;text-align:center;position:relative;overflow:hidden;
+  box-shadow:0 22px 46px rgba(0,0,0,.45);
+}
+.welcome::before{content:"";position:absolute;inset:9px;border:1px solid rgba(18,21,28,.16);border-radius:3px;pointer-events:none}
+.welcome::after{content:"";position:absolute;inset-inline:0;bottom:-7px;height:7px;
+  background:repeating-linear-gradient(90deg,var(--paper) 0 11px,transparent 11px 22px)}
+.welcome .mark{font-size:46px;line-height:1;margin-bottom:8px}
+.welcome h2{font-family:var(--serif);font-weight:900;color:var(--ink);
+  font-size:clamp(23px,4.8vw,33px);line-height:1.25;margin:0 0 10px}
+.welcome p.say{color:#6C6A60;font-size:15px;margin:0 auto 22px;max-width:44ch}
+.field{max-width:380px;margin:0 auto;text-align:right}
+.field label{display:block;font-size:14px;color:#6C6A60;margin-bottom:6px}
+.field input{
+  width:100%;font-family:var(--sans);font-size:18px;padding:13px 14px;
+  border:1px solid var(--paper-edge);border-radius:4px;background:#F7F5EC;color:var(--ink);
+  text-align:right;
+}
+.field input:focus{outline:3px solid var(--gold);outline-offset:2px;background:#fff}
+.field .err{color:var(--stamp-red);font-size:13.5px;margin-top:7px;min-height:18px}
+.enter{
+  display:block;width:100%;max-width:380px;margin:6px auto 0;
+  background:var(--box);color:var(--paper);border:0;border-radius:8px;
+  font-family:var(--serif);font-weight:900;font-size:20px;padding:14px;cursor:pointer;
+  box-shadow:0 5px 0 #0B1327;
+}
+.enter:active{transform:translateY(2px);box-shadow:0 3px 0 #0B1327}
+.tlink{
+  background:none;border:0;color:#8E8A7C;font-family:var(--sans);font-size:13px;
+  text-decoration:underline;cursor:pointer;margin-top:20px;
+}
+.tlink:hover{color:var(--ink)}
+.sandnote{margin:14px auto 0;max-width:44ch;font-size:13px;color:var(--stamp-red);line-height:1.55}
+.whoami{font-size:13px;color:var(--dim);margin-inline-start:6px}
+
+
+/* ---------- חלונית קוד מורה ---------- */
+.gate{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;
+  background:rgba(8,14,28,.72);padding:20px}
+.gate.hidden{display:none}
+.gatebox{background:var(--paper);color:var(--ink);border-radius:6px;padding:26px 22px;
+  width:100%;max-width:360px;text-align:right;box-shadow:0 24px 50px rgba(0,0,0,.5)}
+.gatebox h3{font-family:var(--serif);font-weight:900;font-size:23px;margin:0 0 6px}
+.gatebox p{margin:0 0 14px;font-size:14px;color:#6C6A60}
+.gatebox input{width:100%;font-family:var(--sans);font-size:19px;padding:12px 14px;
+  border:1px solid var(--paper-edge);border-radius:4px;background:#F7F5EC;color:var(--ink);text-align:right}
+.gatebox input:focus{outline:3px solid var(--gold);outline-offset:2px;background:#fff}
+.gerr{color:var(--stamp-red);font-size:13.5px;min-height:19px;margin-top:7px}
+.gbtns{display:flex;gap:8px;margin-top:8px}
+.gbtns button{flex:1;border:0;border-radius:8px;padding:12px;cursor:pointer;
+  font-family:var(--serif);font-weight:900;font-size:17px;background:var(--box);color:var(--paper)}
+.gbtns button.ghost{background:transparent;color:var(--ink);border:1px solid var(--paper-edge)}
+
+/* ---------- דשבורד מורה ---------- */
+.dash{background:var(--paper);color:var(--ink);border-radius:6px;padding:24px 20px;
+  box-shadow:0 22px 46px rgba(0,0,0,.45);position:relative}
+.dash h2{font-family:var(--serif);font-weight:900;font-size:26px;margin:0 0 2px;color:var(--ink)}
+.dash .mode{font-size:13px;color:#6C6A60;margin:0 0 16px}
+.dash .mode b{color:var(--stamp-green)}
+.dash .mode.warn b{color:var(--stamp-red)}
+.statrow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.statrow div{flex:1 1 100px;background:#F2EFE4;border:1px solid var(--paper-edge);border-radius:4px;padding:10px 8px;text-align:center}
+.statrow b{display:block;font-family:var(--serif);font-size:24px;color:var(--box)}
+.statrow span{font-size:12px;color:#6C6A60}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.tools input{flex:1 1 180px;padding:9px 12px;border:1px solid var(--paper-edge);border-radius:4px;
+  background:#F7F5EC;font-family:var(--sans);font-size:14px;text-align:right;color:var(--ink)}
+.tools button{background:var(--box);color:var(--paper);border:0;border-radius:6px;
+  padding:9px 14px;font-family:var(--sans);font-size:13.5px;cursor:pointer}
+.tools button.ghost{background:transparent;color:var(--ink);border:1px solid var(--paper-edge)}
+.tablewrap{overflow-x:auto;border:1px solid var(--paper-edge);border-radius:4px}
+table.grades{width:100%;border-collapse:collapse;font-size:14px;min-width:520px}
+table.grades th{background:#EDE9DC;text-align:right;padding:10px 12px;font-weight:600;
+  font-size:13px;color:#4A4738;cursor:pointer;white-space:nowrap;border-bottom:1px solid var(--paper-edge)}
+table.grades th:hover{background:#E4DFCE}
+table.grades td{padding:10px 12px;border-bottom:1px solid #EDE9DC;white-space:nowrap}
+table.grades tr:last-child td{border-bottom:0}
+table.grades td.nm{font-weight:600;white-space:normal}
+table.grades td.pc b{font-family:var(--serif);font-size:16px}
+.pass{color:var(--stamp-green)} .fail{color:var(--stamp-red)}
+.diag{margin-top:14px;background:#F2EFE4;border:1px solid var(--paper-edge);border-radius:4px;
+  padding:12px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;color:#3A382E;
+  white-space:pre-wrap;word-break:break-word;direction:ltr;text-align:left}
+.empty{padding:26px;text-align:center;color:#6C6A60;font-size:14.5px}
+.dashback{margin-top:16px}
+
+/* ---------- אפקטים ---------- */
+#fx{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:60}
+.confetti{position:absolute;top:-48px;will-change:transform;animation:fall linear forwards}
+@keyframes fall{
+  0%{transform:translate3d(0,0,0) rotate(0deg);opacity:1}
+  100%{transform:translate3d(var(--x),112vh,0) rotate(var(--r));opacity:.9}
+}
+.sadfx{
+  position:absolute;top:13%;left:50%;font-size:82px;
+  transform:translate(-50%,-50%) scale(.4);opacity:0;
+  animation:sadpop 1.15s cubic-bezier(.2,.9,.3,1) forwards;
+}
+@keyframes sadpop{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.4) rotate(-8deg)}
+  22%{opacity:1;transform:translate(-50%,-50%) scale(1.08) rotate(4deg)}
+  40%{transform:translate(-50%,-50%) scale(1) rotate(-4deg)}
+  70%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0deg)}
+  100%{opacity:0;transform:translate(-50%,-64%) scale(.95)}
+}
+.mute{
+  position:fixed;inset-inline-start:14px;bottom:14px;z-index:70;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);
+  color:var(--paper);border-radius:999px;width:42px;height:42px;font-size:18px;
+  cursor:pointer;line-height:1;
+}
+.mute:hover{background:rgba(255,255,255,.16)}
+.mute:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+
+/* ---------- מסך סיום ---------- */
+.finale{
+  background:var(--paper);color:var(--ink);border-radius:6px;
+  padding:36px 26px 34px;text-align:center;position:relative;overflow:hidden;
+  box-shadow:0 26px 54px rgba(0,0,0,.5);
+}
+.finale::before{
+  content:"";position:absolute;inset:9px;border:1px solid rgba(18,21,28,.16);
+  border-radius:3px;pointer-events:none;
+}
+.finale::after{
+  content:"";position:absolute;inset-inline:0;bottom:-7px;height:7px;
+  background:repeating-linear-gradient(90deg,var(--paper) 0 11px,transparent 11px 22px);
+}
+.ribbon{font-size:clamp(44px,10vw,62px);line-height:1;margin-bottom:4px}
+.finale h2{
+  font-family:var(--serif);font-weight:900;color:var(--ink);
+  font-size:clamp(25px,5.2vw,36px);line-height:1.2;margin:0 0 6px;
+}
+.finale .lede{color:#6C6A60;font-size:15px;margin:0 auto;max-width:42ch}
+.scoreboard{margin:24px auto 6px;max-width:340px}
+.bigscore{font-family:var(--serif);font-weight:900;font-size:clamp(52px,13vw,72px);line-height:1;color:var(--box);position:relative;display:inline-block}
+.bigscore span{position:relative;z-index:2}
+.bigscore::after{content:"";position:absolute;inset-inline:-8px;bottom:8px;height:14px;background:var(--gold);opacity:.55;z-index:1;border-radius:2px}
+.pts{display:block;font-family:var(--sans);font-size:13px;color:#6C6A60;margin-top:8px}
+.gauge{margin-top:18px;height:12px;background:#E7E3D6;border-radius:99px;overflow:hidden;border:1px solid var(--paper-edge)}
+.gauge i{display:block;height:100%;width:0;background:var(--stamp-green);transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.gauge.low i{background:var(--stamp-red)}
+.gaugelbl{font-size:13.5px;color:#6C6A60;margin-top:7px}
+.tiles{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:24px}
+.tile{
+  flex:1 1 96px;max-width:150px;background:#F2EFE4;border:1px solid var(--paper-edge);
+  border-radius:4px;padding:12px 8px;
+}
+.tile b{display:block;font-family:var(--serif);font-weight:900;font-size:26px;color:var(--box)}
+.tile span{font-size:12.5px;color:#6C6A60}
+.seal{
+  position:absolute;inset-inline-end:18px;bottom:18px;
+  font-family:var(--serif);font-weight:900;font-size:14px;color:var(--stamp-green);
+  border:3px double currentColor;border-radius:6px;padding:6px 10px;
+  transform:rotate(-9deg);opacity:.85;max-width:120px;line-height:1.25;
+}
+@media (max-width:520px){ .seal{position:static;transform:none;margin:22px auto 0;display:inline-block} }
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms!important;transition-duration:.001ms!important}
+  .stamp{opacity:.92;transform:translateY(-50%) rotate(-11deg) scale(1)}
+  .confetti,.sadfx{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ ברוכים הבאים ============ -->
+  <section id="welcome">
+    <div class="masthead">
+      <div class="slot" aria-hidden="true"></div>
+      <h1>פתק לכל מושג</h1>
+      <p class="sub">משחק מושגים באזרחות לבגרות, תשפ"ז</p>
+    </div>
+
+    <div class="welcome">
+      <div class="mark">🗳️</div>
+      <h2>ברוכים וברוכות הבאות למשחק מושגים באזרחות</h2>
+      <p class="say">נא כתבו את שמכם המלא. השם מופיע ליד התוצאה שלכם ברשימת הכיתה של המורה.</p>
+      <div class="field">
+        <label for="nameIn">שם מלא</label>
+        <input id="nameIn" type="text" autocomplete="name" placeholder="שם פרטי ושם משפחה" maxlength="40">
+        <div class="err" id="nameErr"></div>
+      </div>
+      <button class="enter" id="enter">כניסה למשחק</button>
+      <button class="tlink" id="teacherLink">כניסת מורה</button>
+      <p class="sandnote hidden" id="sandNote">שימו לב: הדף רץ כרגע בתצוגה מקדימה שאינה מאפשרת שמירת תוצאות בשרת. אפשר לשחק, אך הציון לא יישלח למורה.</p>
+    </div>
+  </section>
+
+  <!-- ============ פתיחה ============ -->
+  <section id="start" class="hidden">
+    <div class="masthead">
+      <div class="slot" aria-hidden="true"></div>
+      <h1>פתק לכל מושג</h1>
+      <p class="sub">קוראים הגדרה, מצביעים למושג הנכון. אזרחות לבגרות, תשפ"ז.</p>
+    </div>
+
+    <div class="panel">
+      <h2>מאיזה חומר נשחק?</h2>
+      <p class="hint">אפשר לבחור פרק אחד לפני מבחן, או הכול לפני הבגרות.</p>
+      <div class="chips" id="chips"></div>
+
+      <div class="row">
+        <span class="lbl">אורך הסיבוב</span>
+        <div class="seg" id="len">
+          <button data-n="8" aria-pressed="false">8</button>
+          <button data-n="12" aria-pressed="true">12</button>
+          <button data-n="20" aria-pressed="false">20</button>
+          <button data-n="0" aria-pressed="false">הכול</button>
+        </div>
+      </div>
+
+      <button class="go" id="go">להצבעה</button>
+      <button class="tlink" id="changeName">לא אתם? להחלפת שם</button>
+    </div>
+
+    <p class="foot">
+      הסיבוב תמיד רץ עד הסוף, וכל התשובות נספרות בציון.<br>
+      אפשר להצביע גם במקלדת: 1, 2, 3, 4.
+    </p>
+  </section>
+
+  <!-- ============ משחק ============ -->
+  <section id="play" class="hidden">
+    <div class="hud">
+      <div class="grp">
+        <span id="counter"></span>
+        <span class="miss" id="missCount"></span>
+        <span class="whoami" id="hello"></span>
+      </div>
+      <div class="grp">
+        <button class="restart" id="restart" type="button">התחלה מחדש</button>
+        <span class="streak" id="streak"></span>
+        <span class="score" id="score">0</span>
+      </div>
+    </div>
+    <div class="bar"><i id="progress"></i></div>
+
+    <div class="card">
+      <p class="qkicker" id="kicker">איזה מושג מוגדר כאן?</p>
+      <p class="qtext" id="question"></p>
+    </div>
+
+    <div class="slips" id="slips"></div>
+    <div id="reveal"></div>
+  </section>
+
+  <!-- ============ תוצאות ============ -->
+  <section id="end" class="hidden">
+    <div class="finale">
+      <div class="ribbon" id="rankEmoji">🏆</div>
+      <h2 id="verdict"></h2>
+      <p class="lede" id="finalLine"></p>
+
+      <div class="scoreboard">
+        <div class="bigscore"><span id="finalScore">0</span></div>
+        <span class="pts">נקודות בסיבוב הזה</span>
+        <div class="gauge" id="gauge"><i id="gaugeFill"></i></div>
+        <p class="gaugelbl" id="gaugeLbl"></p>
+      </div>
+
+      <div class="tiles">
+        <div class="tile"><b id="tRight">0</b><span>תשובות נכונות</span></div>
+        <div class="tile"><b id="tStreak">0</b><span>רצף שיא</span></div>
+        <div class="tile"><b id="tLives">0</b><span>טעויות</span></div>
+      </div>
+
+      <div class="seal" id="seal">נספר<br>ואושר</div>
+    </div>
+
+    <div class="missed" id="missed"></div>
+    <div class="btns">
+      <button class="btn-gold" id="again">סיבוב חדש</button>
+      <button class="btn-ghost" id="drill">לתרגל רק את הטעויות</button>
+      <button class="btn-ghost" id="back">לבחור חומר אחר</button>
+    </div>
+  </section>
+
+  <!-- ============ דשבורד מורה ============ -->
+  <section id="dash" class="hidden">
+    <div class="masthead">
+      <div class="slot" aria-hidden="true"></div>
+      <h1>פרוטוקול ועדת הבחירות</h1>
+      <p class="sub">רשימת התלמידים והציונים</p>
+    </div>
+
+    <div class="dash">
+      <h2>ציוני הכיתה</h2>
+      <p class="mode" id="dashMode"></p>
+
+      <div class="statrow">
+        <div><b id="sGames">0</b><span>משחקים</span></div>
+        <div><b id="sPupils">0</b><span>תלמידים</span></div>
+        <div><b id="sAvg">0</b><span>ציון ממוצע</span></div>
+        <div><b id="sTop">0</b><span>הציון הגבוה</span></div>
+      </div>
+
+      <div class="tools">
+        <input id="dashSearch" type="text" placeholder="חיפוש לפי שם">
+        <button id="dashRefresh">רענון</button>
+        <button class="ghost" id="dashCsv">ייצוא לאקסל</button>
+        <button class="ghost" id="dashClear">מחיקת הרשימה</button>
+        <button class="ghost" id="dashDiag">בדיקת חיבור</button>
+      </div>
+
+      <div class="tablewrap">
+        <table class="grades" id="gradesTbl">
+          <thead><tr>
+            <th data-k="student">שם התלמיד</th>
+            <th data-k="pct">ציון</th>
+            <th data-k="score">נקודות</th>
+            <th data-k="correct">נכונות</th>
+            <th data-k="chapters">חומר</th>
+            <th data-k="created_at">מתי</th>
+          </tr></thead>
+          <tbody id="gradesBody"></tbody>
+        </table>
+      </div>
+      <div class="empty hidden" id="dashEmpty">עדיין לא נרשמו תוצאות.</div>
+      <pre class="diag hidden" id="dashDiagOut"></pre>
+    </div>
+
+    <div class="btns dashback">
+      <button class="btn-ghost" id="dashBack">חזרה למסך הפתיחה</button>
+    </div>
+  </section>
+
+</div>
+
+<div id="gate" class="gate hidden" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
+  <div class="gatebox">
+    <h3 id="gateTitle">כניסת מורה</h3>
+    <p>הזינו את קוד המורה כדי לראות את רשימת הציונים.</p>
+    <input id="gateIn" type="text" inputmode="numeric" autocomplete="off" placeholder="קוד">
+    <div class="gerr" id="gateErr"></div>
+    <div class="gbtns">
+      <button id="gateOk">כניסה</button>
+      <button class="ghost" id="gateCancel">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<div id="fx" aria-hidden="true"></div>
+<button class="mute" id="mute" aria-pressed="false" title="צליל" aria-label="השתקת צלילים">🔊</button>
+
+<script>
+const DATA = {"chapters":{"1":"הרקע ההיסטורי להקמת המדינה","2":"הכרזת העצמאות","3":"הרעיון הלאומי","4":"מדינת ישראל והעם היהודי בתפוצות","5":"המאפיינים היהודיים של מדינת ישראל","6":"עמדות (\"חלומות\") לגבי אופייה הרצוי של מדינת ישראל","7":"המיעוטים בישראל","8":"השסע הלאומי","9":"עקרונות הדמוקרטיה","10":"עקרון שלטון העם","11":"עקרון שלטון החוק","12":"עקרון הגבלת השלטון","13":"סוגי זכויות","14":"זכויות האדם הטבעיות","15":"סוגי מדיניות בשוויון","16":"חובות האדם כאדם וכאזרח וזכויות מתנגשות","17":"גישות כלכליות-חברתיות","18":"דמוקרטיה מתגוננת","19":"ביטחון ודמוקרטיה","20":"יסודות חוקתיים","21":"המהפכה החוקתית","22":"הרשות המחוקקת","23":"הרשות המבצעת","24":"הרשות השופטת"},"sets":[{"g":"שלוש ההצדקות להקמת מדינת ישראל","ch":2,"ask":"מהן שלוש ההצדקות להקמת מדינת ישראל?","members":["הצדקה טבעית","הצדקה בינלאומית (משפטית)","הצדקה היסטורית"]},{"g":"פניות לגורמים שונים בהכרזת העצמאות","ch":2,"ask":"לאילו גורמים פונה הכרזת העצמאות?","members":["פנייה לאו\"ם","פנייה לערבים תושבי מדינת ישראל שזה עתה קמה","פנייה למדינות השכנות","פנייה לעם היהודי בתפוצות"]},{"g":"אחריות המדינה ליהודי התפוצות","ch":4,"ask":"באילו תחומים באה לידי ביטוי אחריות המדינה כלפי יהודי התפוצות?","members":["אחריות המדינה ליהודי התפוצות: עלייה וקליטה","אחריות המדינה ליהודי התפוצות: חינוך וחיזוק הקשר","אחריות המדינה ליהודי התפוצות: ביטחון"]},{"g":"יחס התפוצות למדינה","ch":4,"ask":"באילו דרכים בא לידי ביטוי יחסם של יהודי התפוצות למדינת ישראל?","members":["יחס התפוצות למדינה: זהות","יחס התפוצות למדינה: תמיכה פוליטית בישראל","יחס התפוצות למדינה: תמיכה כלכלית"]},{"g":"חוקים בעלי אופי יהודי","ch":5,"ask":"אילו חוקים נמנים עם החוקים בעלי האופי היהודי?","members":["חוק השבות","חוק שעות עבודה ומנוחה","חוק יסודות המשפט","חוק חג המצות","החוק לעשיית דין בנאצים ובעוזריהם","חוק בתי הדין הרבניים"]},{"g":"המרחב הציבורי","ch":5,"ask":"אילו מאפיינים יהודיים באים לידי ביטוי במרחב הציבורי בישראל?","members":["מעמדה של השפה העברית כשפה הרשמית","לוח השנה העברי","סמלי המדינה (סמל, דגל, המנון)"]},{"g":"עמדות בנוגע לזהות הלאומית הרצויה","ch":6,"ask":"מהן העמדות (\"החלומות\") בנוגע לזהותה הלאומית הרצויה של מדינת ישראל?","members":["מדינת לאום יהודית אתנית-תרבותית לא דמוקרטית (מדינה יהודית)","מדינת לאום יהודית אתנית-תרבותית דמוקרטית (מדינה יהודית-דמוקרטית)","מדינה דו-לאומית דמוקרטית (מדינה יהודית-ערבית)","מדינת לאום אזרחית דמוקרטית (מדינה אזרחית)"]},{"g":"עמדות בנוגע לזהות הדתית-תרבותית הרצויה","ch":6,"ask":"מהן העמדות (\"החלומות\") בנוגע לזהותה הדתית-תרבותית הרצויה של מדינת ישראל?","members":["מדינה חילונית שיש בה הפרדה מלאה בין הדת למדינה","מדינה מסורתית (מורשתית)-תרבותית","מדינה המשלבת חקיקה דתית-הלכתית בהיקף חלקי","מדינת הלכה"]},{"g":"היבט דמוגרפי-סוציולוגי: קבוצות המיעוט בישראל","ch":7,"ask":"אילו קבוצות מיעוט נלמדות במסגרת המיעוטים בישראל?","members":["ערבים","דרוזים","נוצרים"]},{"g":"תנאי יסוד לבחירות דמוקרטיות","ch":10,"ask":"מהם תנאי היסוד לבחירות דמוקרטיות?","members":["בחירות כלליות","בחירות חשאיות","בחירות מחזוריות","בחירות שוויוניות","התמודדות חופשית"]},{"g":"שיטת הבחירות בישראל","ch":10,"ask":"מהם מאפייני שיטת הבחירות בישראל?","members":["שיטת בחירות ארצית","שיטת בחירות רשימתית","שיטת בחירות יחסית"]},{"g":"סוגי הפרת חוק ועבריינות","ch":11,"ask":"מהם סוגי הפרת החוק והעבריינות?","members":["עבריינות פלילית רגילה","עבריינות שלטונית אישית (עבריינות פלילית אישית)","עבריינות שלטונית ציבורית (עבריינות פלילית ציבורית)"]},{"g":"עבודת הכנסת","ch":22,"ask":"מהם הגופים והמושגים המרכזיים בעבודת הכנסת?","members":["קואליציה","אופוזיציה","מליאה","ועדות הכנסת"]},{"g":"תפקידי הכנסת","ch":22,"ask":"מהם תפקידי הכנסת?","members":["כינון ממשלה","ייצוג האזרחים","חקיקה","פיקוח וביקורת","מינוי בעלי תפקידים","אסיפה מכוננת"]},{"g":"תפקידי הממשלה","ch":23,"ask":"מהם תפקידי הממשלה?","members":["קביעת מדיניות וביצועה","סמכות שיורית","קביעת תקנות – חקיקת משנה","חקיקת תקנות לשעת חירום"]},{"g":"צווי בג\"ץ","ch":24,"ask":"באילו צווים פועל בג\"ץ?","members":["צו על תנאי","צו ביניים","צו החלטי"]},{"g":"עקרונות הדמוקרטיה","ch":9,"ask":"מהם עקרונות הדמוקרטיה?","members":["עקרון הפלורליזם","עקרון הסובלנות","עקרון ההסכמיות","עקרון שלטון החוק","עקרון שלטון העם","עקרון הכרעת הרוב","עקרון הגבלת השלטון","עקרון הפרדת הרשויות"]},{"g":"מנגנוני פיקוח וביקורת","ch":12,"ask":"מהם סוגי מנגנוני הפיקוח והביקורת על השלטון?","members":["מנגנוני פיקוח וביקורת מוסדיים","מנגנוני פיקוח וביקורת לא מוסדיים"]},{"g":"סוגי זכויות","ch":13,"ask":"מהם סוגי הזכויות?","members":["זכויות טבעיות","זכויות פוליטיות / זכויות אזרח","זכויות קבוצתיות / תרבותיות"]},{"g":"סוגי מדיניות בשוויון","ch":15,"ask":"מהם שלושת סוגי המדיניות בשוויון?","members":["אפליה פסולה","הבחנה (מותרת)","העדפה מתקנת"]},{"g":"גישות כלכליות-חברתיות","ch":17,"ask":"מהן הגישות הכלכליות-חברתיות?","members":["הגישה הליברלית","הגישה הסוציאל-דמוקרטית"]},{"g":"סוגי אחריות ממשלתית","ch":23,"ask":"מהם סוגי האחריות הממשלתית?","members":["אחריות ממשלתית משותפת","אחריות מיניסטריאלית"]}],"concepts":[{"t":"הצהרת בלפור","ch":[1],"d":["מכתב ששלח שר החוץ הבריטי בלפור בשנת 1917 ללורד היהודי רוטשילד.","המכתב מודיע על החלטת ממשלת בריטניה לקדם הקמת בית לאומי לעם היהודי בארץ ישראל."]},{"t":"כתב המנדט","ch":[1],"d":["הסמכה לבריטניה על ידי חבר הלאומים בשנת 1922.","ההסמכה ניתנה להקמת בית לאומי לעם היהודי בארץ ישראל (יישום הצהרת בלפור).","המנדט (יחידת שליטה) ניתן על ארץ ישראל משני עברי הירדן.","המנדט מדגיש את הצורך לשמור על הזכויות האזרחיות והדתיות של לא-יהודים בארץ ישראל."]},{"t":"החלטה 181 – תוכנית החלוקה","ch":[1],"d":["החלטת עצרת האו\"ם בכ\"ט בנובמבר 1947 (29.11.47).","החלטה להקים בתוך החלק שנותר מן המנדט בארץ ישראל המערבית מדינה יהודית ומדינה ערבית.","ההנהגה היהודית קיבלה את התוכנית. ההנהגה הערבית דחתה אותה, והערבים החלו בפעולות איבה (השלב הראשון של מלחמת העצמאות)."]},{"t":"הצדקה טבעית","ch":[2],"d":["הצדקה להקמת מדינה יהודית בארץ ישראל הנובעת מהזכות הטבעית והאוניברסלית של כל עם להגדרה עצמית."]},{"t":"הצדקה בינלאומית (משפטית)","ch":[2],"d":["הצדקה להקמת מדינה יהודית בארץ ישראל הנובעת מהכרה בינלאומית בזכותו של העם היהודי למדינה בארץ ישראל.","ההכרה מתבטאת בהחלטות רשמיות של מדינות וגופים בינלאומיים (הצהרת בלפור / כתב המנדט / החלטת האו\"ם על החלוקה – החלטה 181)."]},{"t":"הצדקה היסטורית","ch":[2],"d":["הצדקות להקמת מדינה יהודית בארץ ישראל הקשורות לאירועים היסטוריים (יש לזכור שלוש):","בארץ ישראל קם העם היהודי, התעצב ויצר נכסי תרבות ובראשם התנ\"ך.","במהלך הגלות המשיך העם בתקווה ובמאמץ לשוב לארץ ישראל.","בדורות האחרונים נעשה מאמץ לשיבה לארץ שהביא להקמת יישוב גדול ומבוסס.","השואה הוכיחה את ההכרח בפתרון בעיית האנטישמיות על ידי מדינה יהודית.","השתתפות היישוב היהודי במלחמת העולם השנייה הקנתה לו את הזכות להימנות על העמים באו\"ם."]},{"t":"מאפיינים יהודיים של המדינה בהכרזה","ch":[2],"d":["בשם המדינה: מדינת ישראל.","בפתיחת שעריה לכל יהודי.","בקריאה לעם היהודי להתלכד סביבה.","בקביעה כי המדינה תושתת על יסודות החירות, הצדק והשלום במורשתם של נביאי ישראל."]},{"t":"מאפיינים דמוקרטיים של המדינה בהכרזה","ch":[2],"d":["שמירה על המקומות הקדושים לכל הדתות.","פיתוח הארץ לטובת כל תושביה.","הכרזה על הקמת מוסדות דמוקרטיים / קיום בחירות / כינון חוקה.","הבטחה לשוויון זכויות חברתי ומדיני לכל אזרחיה ללא הבדל דת, גזע ומין.","הבטחה להיות נאמנים לעקרונותיה של מגילת האו\"ם.","קריאה לערבים תושבי המדינה שקמה להשתתף בבניין המדינה על יסוד אזרחות מלאה ושווה.","הבטחה להעניק לערבים אזרחי ישראל נציגות מתאימה בכל מוסדות המדינה."]},{"t":"פנייה לאו\"ם","ch":[2],"d":["פנייה לשיתוף פעולה בהגשמת החלטת החלוקה ולקבל את ישראל לתוך משפחת העמים."]},{"t":"פנייה לערבים תושבי מדינת ישראל שזה עתה קמה","ch":[2],"d":["פנייה לשמור על השלום ולקחת חלק בהקמת המדינה, על יסוד אזרחות מלאה ושווה במדינה וייצוג מתאים בכל מוסדותיה."]},{"t":"פנייה למדינות השכנות","ch":[2],"d":["הושטת יד לשלום ולשכנות טובה, ולשיתוף פעולה במאמץ לקדם את המזרח התיכון כולו."]},{"t":"פנייה לעם היהודי בתפוצות","ch":[2],"d":["פנייה להתלכד סביב היישוב היהודי ולסייע במערכה הגדולה על הגשמת שאיפת הדורות לגאולת ישראל."]},{"t":"קבוצה אתנית","ch":[3],"d":["קבוצה שלה יסודות משותפים אתניים-תרבותיים (מוצא, שפה, תרבות, היסטוריה ודת).","קבוצה זו אינה בהכרח בעלת דרישות להגדרה עצמית (ריבונות)."]},{"t":"לאום (קבוצת לאום)","ch":[3],"d":["קבוצה שלה יסודות משותפים (אתניים-תרבותיים וגם/או יסודות פוליטיים).","לקבוצה זו מדינה ריבונית או אוטונומיה בתוך מדינה ריבונית, או שהיא שואפת לאחד משני אלו."]},{"t":"לאומיות אתנית-תרבותית","ch":[3],"d":["השאיפה המשותפת לבני לאום לשלטון עצמי במסגרת של מדינה ריבונית.","מבוססת על יסודות אתניים-תרבותיים: מוצא, שפה, תרבות, היסטוריה ולעיתים גם דת (אין חפיפה בין לאומיות לאזרחות)."]},{"t":"לאומיות פוליטית / אזרחית","ch":[3],"d":["השאיפה המשותפת לבני לאום לשלטון עצמי במסגרת של מדינה ריבונית.","מבוססת על יסודות פוליטיים: שותפות, רצון משותף לחיות באותה מדינה או מסגרת פוליטית ולקדם יחד ערכים ונורמות משותפים, תפיסה של \"טוב משותף\"."]},{"t":"אחריות המדינה ליהודי התפוצות: עלייה וקליטה","ch":[4],"d":["בהכרזת העצמאות נאמר שמדינת ישראל היא מדינת הלאום של העם היהודי, וכל יהודי יכול לעלות לארץ.","חוק השבות וחוק האזרחות מאפשרים לכל יהודי לעלות לישראל ולקבל בה אזרחות."],"sn":"עלייה וקליטה"},{"t":"אחריות המדינה ליהודי התפוצות: חינוך וחיזוק הקשר","ch":[4],"d":["מוסדות רשמיים של המדינה מטפלים בחיזוק זהותה היהודית של יהדות התפוצות ובעלייתה לישראל (למשל: ההסתדרות הציונית העולמית והסוכנות היהודית המעוגנים בחוק, קיומו של שר לענייני תפוצות ושר הקליטה)."],"sn":"חינוך וחיזוק הקשר"},{"t":"אחריות המדינה ליהודי התפוצות: ביטחון","ch":[4],"d":["התגייסות המדינה לטובת יהודים המצויים במצוקה ברחבי העולם.","החוק הפלילי של מדינת ישראל מאפשר ענישה של מי שפגע ביהודי על רקע יהדותו, גם אם עשה זאת מחוץ לשטחה של המדינה וכלפי יהודי שאיננו אזרח המדינה."],"sn":"ביטחון"},{"t":"יחס התפוצות למדינה: זהות","ch":[4],"d":["רבים מיהודי העולם חשים קרבה, שותפות, קשר והזדהות עם מדינת ישראל, על אף היותם אזרחים לכל דבר במדינותיהם.","במקרים מסוימים הדבר גורם לדילמות של \"נאמנות כפולה\".","הדור הצעיר בקהילות רבות מזדהה פחות עם ישראל, ונעשים מאמצים לחיזוק הזדהות זו (פרויקט תגלית, שליחי הסוכנות היהודית וכו')."],"sn":"זהות"},{"t":"יחס התפוצות למדינה: תמיכה פוליטית בישראל","ch":[4],"d":["תמיכה על ידי ארגונים ושדולות המשתדלים להשפיע על ממשלותיהם לתמוך בישראל בהקשרים שונים."],"sn":"תמיכה פוליטית בישראל"},{"t":"יחס התפוצות למדינה: תמיכה כלכלית","ch":[4],"d":["לאורך השנים תומכת יהדות התפוצות בפעילויות שונות ובגיוס כספים ותרומות לישראל בסכומים גדולים."],"sn":"תמיכה כלכלית"},{"t":"חוק-יסוד: ישראל – מדינת הלאום של העם היהודי","ch":[5,20],"d":["חוק-יסוד זה הוא חלק מחוקי היסוד, שהם חלק בלתי נפרד מהיסודות החוקתיים של המדינה, שאמורים להוות תשתית לחוקה העתידית.","החוק מעגן את אופייה היהודי של מדינת ישראל ומגדיר את מדינת ישראל כמדינת הלאום של העם היהודי.","החוק מגדיר את מאפייני המדינה כגון: דגל, המנון, סמל, שפה, ירושלים כעיר הבירה וכו'."]},{"t":"חוק השבות","ch":[5,20],"d":["חוק משנת 1950 הקובע שכל יהודי זכאי לעלות לארץ.","החוק מאפשר גם לבני/ות זוגם ולנכדיהם של יהודים ולבני/ות זוגם לעלות לארץ (אם כי הם אינם נרשמים כיהודים).","החוק נובע מתפיסת היסוד של מדינת ישראל כמדינת הלאום של כל יהודי העולם, ולכן מקובל לראות בו חוק מבחין ולא חוק מפלה.","במדינות רבות בעולם קיימת מדיניות הגירה המבוססת על עקרון שבות של בני הלאום."]},{"t":"חוק שעות עבודה ומנוחה","ch":[5],"d":["החוק מגדיר את שעות העבודה ואת ימי העבודה והמנוחה במשק.","ליהודים נקבעה השבת כיום השבתון השבועי. ללא-יהודים – יום שישי, שבת או ראשון לפי בחירתם."]},{"t":"חוק יסודות המשפט","ch":[5],"d":["החוק מתייחס למקרים שבהם אין חקיקה ראשית אחרת לגבי המקרה הנידון.","החוק מנחה את בתי המשפט לפסוק על פי \"עקרונות החירות, הצדק והיושר של מורשת ישראל\" במקרים שבהם אין חקיקה ראשית אחרת המתייחסת למקרה."]},{"t":"חוק חג המצות","ch":[5],"d":["החוק אוסר על בעלי עסקים הצגת חמץ ומכירתו ברשות הרבים באזורים יהודיים במהלך ימי חג הפסח.","החוק אינו אוסר אכילת חמץ."]},{"t":"החוק לעשיית דין בנאצים ובעוזריהם","ch":[5],"d":["החוק קובע כללי ענישה ייחודיים (כולל עונש מוות) על פשעי הנאצים ועוזריהם, למרות שנעשו לפני הקמת המדינה ומחוץ לגבולותיה.","הענישה מתייחסת לפשעים שנעשו נגד העם היהודי."]},{"t":"חוק בתי הדין הרבניים","ch":[5],"d":["החוק קובע שכל אזרחי ישראל מחויבים להתחתן ולהתגרש במסגרת בתי הדין של בני דתם, וממילא נישואין וגירושין של יהודים בישראל ייערכו על פי דין תורה.","החל משנת 2010 המדינה מאפשרת נישואין אזרחיים לאזרחים שהם חסרי דת."]},{"t":"מעמדה של השפה העברית כשפה הרשמית","ch":[5],"d":["העברית נקבעה בחוק-יסוד כשפה של מדינת ישראל."]},{"t":"לוח השנה העברי","ch":[5],"d":["לוח השנה העברי הוא לוח השנה הרשמי של מדינת ישראל, כביטוי לאופייה היהודי של המדינה.","החגים היהודיים הם ימי שבתון רשמיים במדינה.","החוק מחייב שימוש בתאריך עברי בכל מסמך רשמי היוצא מטעם המדינה ומוסדותיה."]},{"t":"סמלי המדינה (סמל, דגל, המנון)","ch":[5],"d":["סמלי המדינה הקבועים בחוק מבטאים את זהותה היהודית.","דגל המדינה מורכב ממגן דוד, שהוא סמל יהודי מסורתי, ומפסי תכלת ולבן שהם צבעי הטלית היהודית (נבחר כדגלה של התנועה הציונית עוד בראשית דרכה).","סמל המדינה הוא המנורה שעמדה בבית המקדש בירושלים ומשני צדיה ענפי זית.","המנון המדינה, \"התקווה\", מבטא את שאיפת העם היהודי לחזור לארצו ולחדש בה את חירותו המדינית."]},{"t":"הסדר הסטטוס קוו (נישואין, שבת, כשרות, חינוך)","ch":[5],"d":["ההסדר להכרעה במחלוקות בסוגיות דת ומדינה, שיסודו מיוחס למכתב הצהרת כוונות משנת 1947 (שנשלח מהנהלת הסוכנות היהודית למפלגת אגודת ישראל).","נועד למנוע העמקת מחלוקות בין דתיים לחילונים ולאפשר חיים משותפים במדינה שעתידה לקום.","עוסק בהסדרת ארבע סוגיות מרכזיות של דת ומדינה: (א) הגדרת השבת כיום המנוחה במדינת ישראל (ליהודים); (ב) מטבח כשר במוסדות ממלכתיים; (ג) נישואין וגירושין של יהודים יתנהלו בהתאם להלכה; (ד) מתן אוטונומיה לזרם החינוך הדתי.","רובו התקבע בחקיקה, ואופן שימורו ויישומו הראויים נתונים לאורך כל השנים בוויכוח ציבורי."]},{"t":"מדינת לאום יהודית אתנית-תרבותית לא דמוקרטית (מדינה יהודית)","ch":[6],"d":["ישראל מזוהה עם לאום אתני-תרבותי יהודי ומבטאת את זכותו להגדרה עצמית לאומית.","הסמלים, המועדים הרשמיים, החוקים ומוסדות המדינה נותנים ביטוי ליסודות האתניים-תרבותיים היהודיים (מוצא, שפה, תרבות, היסטוריה, מורשת ודת).","מדינת ישראל אינה מחויבת בהכרח לשוויון זכויות מלא בין כל אזרחיה, ובכל התנגשות או מתח בין היסוד היהודי ליסוד הדמוקרטי – היהודי בהכרח יגבר."]},{"t":"מדינת לאום יהודית אתנית-תרבותית דמוקרטית (מדינה יהודית-דמוקרטית)","ch":[6],"d":["המדינה מזוהה עם לאום אתני-תרבותי יהודי ומבטאת את זכותו להגדרה עצמית לאומית.","חלק מהסמלים, המועדים הרשמיים, החוקים ומוסדות המדינה נותנים ביטוי ליסודות האתניים-תרבותיים היהודיים (מוצא, שפה, תרבות, היסטוריה, מורשת ודת).","מדינת ישראל מחויבת לשוויון מלא בין כל אזרחיה, לצד הגדרתה העצמית הלאומית היהודית.","ישראל היא מדינתו של העם היהודי בארץ ובתפוצות."]},{"t":"מדינה דו-לאומית דמוקרטית (מדינה יהודית-ערבית)","ch":[6],"d":["מדינה המזוהה עם הלאום היהודי ועם הלאום הערבי במידה שווה.","יש לשנות את דגל המדינה, סמליה, המנונה ומרכיבים זהותיים נוספים כך שיתנו ביטוי מקביל ובעל משקל שווה גם לזהות הערבית.","במדינה יהיו גם יסודות אזרחיים משותפים לכלל אזרחי המדינה."]},{"t":"מדינת לאום אזרחית דמוקרטית (מדינה אזרחית)","ch":[6],"d":["עמדה התומכת בביטול זהותה היהודית של המדינה ומבקשת למנוע זיקה של המדינה לקבוצה לאומית אתנית-תרבותית כלשהי.","הסמלים, המועדים, החוקים ומוסדות המדינה יבטאו רק יסודות המשותפים לכל האזרחים במדינה.","המדינה תגדיר את זהותה הלאומית על בסיס האזרחות הישראלית בלבד."]},{"t":"מדינה חילונית שיש בה הפרדה מלאה בין הדת למדינה","ch":[6],"d":["מקור הסמכות במדינה הוא ציבור האזרחים.","המדינה יהודית מבחינה לאומית, אך יש להפריד לחלוטין בין הדת והמורשת היהודית לבין המדינה / המוסדות הפוליטיים, למעט סמלים.","אין זה מתפקידה של המדינה לחוקק חוקים בעלי אופי דתי, להעניק שירותים דתיים או להתערב בענייני דת, אך עליה לאפשר קיום פולחן דתי פרטי."]},{"t":"מדינה מסורתית (מורשתית)-תרבותית","ch":[6],"d":["מקור הסמכות במדינה הוא ציבור האזרחים.","מדינת ישראל, כמדינת העם היהודי, צריכה לתת ביטוי בחקיקה ובמרחב הציבורי למורשת היהודית במובן התרבותי והלאומי, מתוך זיקה למורשת/מסורת אך ללא מחויבות להלכה."]},{"t":"מדינה המשלבת חקיקה דתית-הלכתית בהיקף חלקי","ch":[6],"d":["מקור הסמכות במדינה הוא ציבור האזרחים.","למדינה ערך דתי, ולכן עליה לשאוף לשלב מרכיבים הלכתיים בחקיקה ובמרחב הציבורי משיקולים דתיים.","בין שני היסודות, הדתי והדמוקרטי, עשוי להיווצר מתח, ולכן יש לחתור לפתרונות שונים ביניהם.","יהדותה של המדינה תתבטא בחיזוק/שימור האופי היהודי הדתי/הלכתי בעיקר במרחב הציבורי ובתחום המעמד האישי (שבת, כשרות, נישואין, גיור) ובשילוב המשפט העברי בחקיקה ובפסיקה."]},{"t":"מדינת הלכה","ch":[6],"d":["מקור הסמכות במדינה הוא ההלכה היהודית ולא ציבור האזרחים, בשונה מדמוקרטיה. חוקי המדינה ייקבעו על פי דיני התורה בכל תחומי החיים.","בקרב המחזיקים בעמדה זו ישנן תפיסות שונות באשר למידת האכיפה הרצויה בפועל מצד המדינה בביתו הפרטי של האזרח.","המדינה לא תהיה דמוקרטית. יחד עם זאת, יתקיימו בה מאפיינים דתיים (הלכתיים) העולים בקנה אחד עם מאפיינים דמוקרטיים."]},{"t":"מעמד המיעוטים במדינת ישראל","ch":[7],"d":["בהכרזת העצמאות התחייבה מדינת ישראל להעניק זכויות שוות לכל אזרחיה ללא הבדל דת, גזע ומין.","ישראל מעניקה לכל אזרחיה זכויות פרט מלאות ושוות.","החוק אוסר אפליה בקבלה לעבודה על בסיס לאומי או דתי.","קיימת אפשרות נרחבת לביטוי תרבותי ודתי במרחב הציבורי ובהיבטים מוסדיים (לעומת כמה ממדינות אירופה שבהן קיימת הגבלה על לבישת כיסוי ראש מלא או על בניית צריחי מסגדים)."]},{"t":"ערבים","ch":[7],"d":["קבוצת המיעוט הגדולה במדינת ישראל היא קבוצת המיעוט הערבי, והיא מהווה כ-20% מאזרחי המדינה.","מתוך האוכלוסייה המוסלמית כ-15% הם בדואים.","רוב הערבים בישראל מזהים עצמם כחלק מן הלאום הערבי, וחלקם הגדול גם מזדהים כפלסטינים. לרבים מהם בני משפחה במדינות ערב.","ניתן לזהות בקרב החברה הערבית בישראל מגמות של השתלבות במדינה ובחברה, לצד תהליכי בידול והזדהות עם המאבק הפלסטיני נגד מדינת ישראל.","הערבים פטורים מגיוס לצבא על פי חוק (חלק מבני המיעוט הנוצרי מתנדבים בשירות אזרחי או צבאי, וכך גם מיעוט קטן של המוסלמים ורוב הבדואים); קיימת מחלוקת בתוך החברה הערבית בסוגיה זו.","המוסלמים הם המיעוט הדתי הגדול בישראל (18% מאוכלוסיית המדינה). רוב כמעט מוחלט של המוסלמים בישראל הם ערבים."]},{"t":"דרוזים","ch":[7],"d":["מיעוט קטן יחסית (פחות מ-2% מאזרחי המדינה).","בעלי דת ייחודית וסודית.","רובם מגדירים את עצמם כקבוצה אתנית נפרדת, ללא שאיפה לאומית-מדינית, ונאמנים למדינה שבתוכה הם חיים.","משולבים במערכות הביטחון והמדינה בשירות קבע ובדרגות בכירות.","לעומת הדרוזים בגליל, קבוצת הדרוזים ברמת הגולן, שנכנסו תחת השליטה הישראלית רק לאחר מלחמת ששת הימים (1967), נמנעים בדרך כלל מקבלת אזרחות ישראלית ומהשתתפות בבחירות."]},{"t":"נוצרים","ch":[7],"d":["מיעוט דתי קטן יחסית (פחות מ-2% מאזרחי המדינה).","רוב הנוצרים בישראל רשומים בסעיף הלאום כערבים. מאז 2014 ניתנה להם רשות להירשם כארמים ולא כערבים."]},{"t":"המרחב הציבורי והמוסדי של המיעוטים בישראל","ch":[7],"d":["לשפה הערבית מעמד מיוחד בישראל. חלק מפרסומי המדינה / שלטי הכוונה / תקנות שונות מחויבים להיכתב גם בערבית.","ימי המועד של המיעוטים מוכרים להם כימי חופשה.","בני העדות הלא-יהודיות כפופים לשיפוט הדתי של בתי הדין על פי דתם בנושאי אישות.","למיעוטים השונים קיימות מערכות חינוך נפרדות המתנהלות בשפתם.","חוק החינוך הממלכתי קובע כמטרה לחנך כל אדם לכבוד למורשתו ולזהותו התרבותית."]},{"t":"השסע הלאומי","ch":[8],"d":["מתח / פיצול / חיכוך בין יהודים לערבים בישראל (בקווי 1967).","נובע מסיבות היסטוריות, דתיות, חברתיות ופוליטיות.","מתבטא בעוינות הדדית, מתחים ואפליה."]},{"t":"דרכי ההתמודדות עם השסע הלאומי","ch":[8],"d":["חינוך כל המגזרים לסובלנות ולקבלת האחר במדינה יהודית ודמוקרטית.","הקפדה על זכויות הפרט ועל זכויות תרבותיות מסוימות.","קידום ייצוג הולם בשירות המדינה ובחברות ממשלתיות.","מדיניות של העדפה מתקנת – הקצאת משאבים מיוחדים (הונהגה בישראל בכמה תחומים כלפי המיעוט הערבי).","הנהגת שיטת בחירות יחסית המאפשרת ייצוג בכנסת לקבוצות השונות."]},{"t":"עקרון הפלורליזם","ch":[9],"d":["הכרה בערך של ריבוי דעות של אנשים או קבוצות.","תמיכה בקיום ובביטוי של מגוון דעות של אנשים או קבוצות בחברה."]},{"t":"עקרון הסובלנות","ch":[9],"d":["קבלת השונה, יחס מכבד לשונים ממני, לדעותיהם ולאורח חייהם.","הימנעות מתגובות אלימות מילולית או פיזית בעת מחלוקת.","הימנעות מהפעלת סמכות שלטונית כלפי עמדות ביקורתיות או מרגיזות."]},{"t":"עקרון ההסכמיות","ch":[9],"d":["הסכמה רחבה בין קבוצות בחברה על כללי משחק בסיסיים או על אופייה הבסיסי של החברה והמדינה.","מחזקת את היציבות ומאפשרת קיום בצוותא על אף חילוקי דעות בתחומים אחרים.","קיים מתח בין ערך הפלורליזם, המעודד ריבוי דעות, לבין ערך ההסכמיות, המחזק את האחידות."]},{"t":"עקרון שלטון החוק","ch":[9],"d":["החוק הוא עליון וקובע את כללי ההתנהגות באמצעות חוקים המחייבים הן את האזרחים והן את השלטון.","החוקים נחקקים על ידי הרשות המחוקקת המבטאת את ריבונות העם.","החוקים צריכים להיות שוויוניים בתוכנם ובאכיפתם.","החוק חייב להיות כללי, בהיר ופומבי.","טיפ: כאשר בשאלת בגרות מופיע עוגן עם המילים תקנות, פקודות, כללים, חוקים, הנחיות, דינים, הוראות, נהלים, צווים וכו' – מדובר בעקרון שלטון החוק."]},{"t":"עקרון שלטון העם","ch":[9],"d":["עקרון יסוד של הדמוקרטיה.","כלל האזרחים הם הריבון.","האזרחים בוחרים שלטון נבחר – לזמן קצוב המוגדר בחוק."]},{"t":"עקרון הכרעת הרוב","ch":[9],"d":["עקרון הקובע שמתוך כמה אפשרויות נבחרת זו שרוב המצביעים תומכים בה.","אסור לרוב לקבל החלטות שפוגעות באופן לא סביר בזכויות יסוד ובמיוחד בזכויות המיעוט."]},{"t":"עקרון הגבלת השלטון","ch":[9],"d":["השלטון מחזיק באמצעים (כלכליים, אנושיים, מקורות מידע, מנגנוני אכיפה) המעניקים לו עוצמה רבה.","קיימת סכנה בניצול לרעה של כוחו של השלטון תוך פגיעה בזכויות האדם והאזרח או בזכויות קבוצה.","הפרדת הרשויות ואמצעים מוסדיים ולא מוסדיים נועדו למניעת עריצות השלטון."]},{"t":"עקרון הפרדת הרשויות","ch":[9],"d":["פיצול הכוח השלטוני לשלוש רשויות: מחוקקת, מבצעת ושופטת.","מטרתו להגביל את השלטון (למנוע את ריכוז הכוח בידי גורם שלטוני אחד ולקדם הגנה על זכויות האדם).","לכל רשות סמכויות ייחודיות בתחומה אך לא מוחלטות, ומתקיימים בין הרשויות יחסי איזון, ריסון, פיקוח ובקרה, ואיזונים ובלמים."]},{"t":"עריצות הרוב","ch":[9],"d":["שימוש לרעה בעקרון הכרעת הרוב."]},{"t":"תרבות פוליטית דמוקרטית","ch":[9],"d":["ערכים, אמונות וצורות התנהגות המבטאים הזדהות עם עקרונות הדמוקרטיה.","ביניהם ניתן למנות רמה גבוהה של השתתפות בבחירות והשתתפות אזרחית, קבלת הכרעת הרוב, הכרה בשלטון החוק והפנמת ערכים כמו פלורליזם, סובלנות והסכמיות.","תרבות פוליטית דמוקרטית והחינוך אליה מחזקים את היציבות של המדינה הדמוקרטית.","אינה קיימת במידה שווה בכל הדמוקרטיות."]},{"t":"בחירות כלליות","ch":[10],"d":["כל אזרחי המדינה זכאים לבחור ולהיבחר למוסדות הנבחרים במדינה, במגבלות הכתובות בחוק (כמו גיל מינימלי, ובמדינות מסוימות עבריינות על החוק)."]},{"t":"בחירות חשאיות","ch":[10],"d":["איש מלבד הבוחר אינו יודע במי בחר.","מובטח שהבוחר לא יושפע מלחצים של גורמים שונים."]},{"t":"בחירות מחזוריות","ch":[10],"d":["הבחירות חוזרות במרווחי זמן ידועים וסדירים הקבועים בחוק."]},{"t":"בחירות שוויוניות","ch":[10],"d":["קולו של כל מצביע שווה למשנהו."]},{"t":"התמודדות חופשית","ch":[10],"d":["הבחירות מאפשרות תחרות הוגנת המבוססת על חירויות וזכויות פוליטיות (במיוחד חופש הביטוי וחופש ההתאגדות)."]},{"t":"שיטת בחירות ארצית","ch":[10],"d":["כל הארץ מהווה אזור בחירה אחד לצורך חישוב תוצאות הבחירות."]},{"t":"שיטת בחירות רשימתית","ch":[10],"d":["מצביעים למפלגה שלה רשימת מועמדים (קבועה מראש או מושפעת מהצבעת הבוחרים).","דרכים רווחות לקביעת הרשימה: בחירות מקדימות (פריימריז) / בחירות במוסדות המפלגה / ועדה מסדרת / ראש הרשימה מסדר."]},{"t":"שיטת בחירות יחסית","ch":[10],"d":["חלוקת המושבים בבית המחוקקים יחסית (בקירוב) למספר הקולות שבהם זכתה כל רשימת מועמדים.","החישוב נעשה לפי מספר המצביעים בבחירות או לפי הקולות הכשרים בלבד – בתנאי שהמפלגה עברה את אחוז החסימה."]},{"t":"עבריינות פלילית רגילה","ch":[11],"d":["המבצע: אדם שפועל בדרך אקטיבית-פעילה, לרוב אלימה, ואינו מוכן לשאת בתוצאות מעשיו.","המניע: אינטרס אישי.","יחסה של החברה: שלילי, בשל הסכנה לסדר הציבורי ולשלום הציבור.","יחסה של המדינה: רואה בכך עבירה על החוק ותפעיל אמצעי אכיפה."]},{"t":"עבריינות שלטונית אישית (עבריינות פלילית אישית)","ch":[11],"d":["המבצע: נושא משרה ציבורית (נבחר או ממונה), שאינו מוכן לשאת בתוצאות מעשיו.","המניע: אינטרס אישי.","יחסה של החברה: שלילי, בשל הסכנה לאובדן אמון הציבור ברשויות השלטון שפועלות שלא לטובת כלל הציבור.","יחסה של המדינה: רואה בכך עבירה על החוק ותפעיל אמצעי אכיפה."]},{"t":"עבריינות שלטונית ציבורית (עבריינות פלילית ציבורית)","ch":[11],"d":["המבצע: נושא משרה ציבורית (נבחר או ממונה), שאינו מוכן לשאת בתוצאות מעשיו.","המניע: להיטיב עם ציבור מסוים או עם טובת הכלל, מנקודת מבטו של מפר החוק.","יחסה של החברה: שלילי, בשל הסכנה לאובדן אמון הציבור ברשויות השלטון שפועלות שלא לטובת כלל הציבור ובשל האפליה הנוצרת כתוצאה מהעבירה בין קבוצות בחברה. חלק יגלו סלחנות, למרות הפרת החוק, מפני שהפרת החוק מטיבה איתם.","יחסה של המדינה: רואה בכך עבירה על החוק ותפעיל אמצעי אכיפה."]},{"t":"פקודה בלתי חוקית","ch":[11],"d":["נותן הפקודה: בעל הסמכות במערכת צבאית או משטרתית.","תוכן הפקודה: לבצע מעשה שאינו מעוגן בחוק.","התנהגות מקבל הפקודה: חייב לציית.","לאחר ביצוע הפקודה: מקבל הפקודה יכול להתלונן על נותן הפקודה; ניתן להעמיד לדין את נותן הפקודה; ניתן להעמיד לדין את הפקוד אם לא ביצע את הפקודה.","דוגמה: פקודה להיכנס לבית ולערוך חיפוש ללא צו חיפוש."]},{"t":"פקודה בלתי חוקית בעליל","ch":[11],"d":["נותן הפקודה: בעל הסמכות במערכת צבאית או משטרתית.","תוכן הפקודה: לבצע מעשה שאינו מעוגן בחוק; מעשה בלתי מוסרי בבירור; מעשה של פגיעה בחפים מפשע, פגיעה במי שאינו מאיים, בצורה קיצונית ובהיעדר סיבה מוצדקת.","התנהגות מקבל הפקודה: אסור לציית / חובה לסרב.","לאחר ביצוע הפקודה: נותן הפקודה יועמד לדין; מבצע הפקודה יועמד לדין ויואשם בעבירה פלילית.","דוגמה: פקודה להרוג חף מפשע."]},{"t":"מנגנוני פיקוח וביקורת מוסדיים","ch":[12],"d":["ביקורת שמקיימים גופים ומוסדות שלטוניים: הרשות המחוקקת (אופוזיציה, ועדות הכנסת, כלים פרלמנטריים), מבקר המדינה, נציב תלונות הציבור ומערכת המשפט.","גופים אלה הוסמכו לשם כך בחוק.","מטרתם הגבלת השלטון ובחינת חוקיות פעולותיו.","פועלים באמצעות פרסום דו\"חות / הנחיות / חוקים / מסמכים רשמיים אחרים המציגים את פעולות השלטון."]},{"t":"מנגנוני פיקוח וביקורת לא מוסדיים","ch":[12],"d":["ביקורת שמקיימים גופים, ארגונים או פרטים באמצעות הפגנות / מחאות / שביתות / עצרות / עצומות / יצירות אומנות (קולנוע, טלוויזיה, תיאטרון, ספרות, אומנות פלסטית), הופעה וכתיבה באמצעי התקשורת וברשתות החברתיות.","פועלים ללא הסמכה חוקית, אלא מיוזמתם של אזרחים או קבוצות.","מטרתם הגבלת השלטון ובחינת חוקיות פעולותיו.","פועלים באמצעות לחץ והבעת ביקורת פוליטית על קובעי מדיניות."]},{"t":"זכויות טבעיות","ch":[13],"d":["זכויות יסוד הניתנות לכל אדם באשר הוא אדם.","הזכויות הטבעיות אינן מוענקות על ידי השלטון ואינן תלויות בו.","מקובל למנות בין הזכויות הטבעיות: חיים וביטחון, קניין, חירות, שוויון, כבוד והליך משפטי הוגן."]},{"t":"זכויות פוליטיות / זכויות אזרח","ch":[13],"d":["זכויות פוליטיות הן זכויות הקשורות לתחום הפוליטי.","זכויות פוליטיות מתחלקות לזכויות שהן זכויות אזרח, המוענקות לאזרחי המדינה בלבד: הזכות לבחור ולהיבחר והזכות להתארגן כמפלגה המתמודדת בבחירות.","ולזכויות פוליטיות הנובעות מזכויות טבעיות, המבוססות על הזכויות הטבעיות של כל אדם ואינן מוגבלות לאזרחי המדינה בלבד: חופש ההפגנה והמחאה והאפשרות לבקר את השלטון."]},{"t":"זכויות קבוצתיות / תרבותיות","ch":[13],"d":["זכויות הניתנות למיעוטים לאומיים ולקבוצות אתניות-תרבותיות במדינה.","באות לידי ביטוי בתחומים הבאים: שפה, חינוך, תרבות, ייצוג כקבוצה, קיום מצוות הדת וחופש הפולחן.","מטרתן להסדיר בצורה מוסדית את זהותה הייחודית של הקבוצה במדינה.","המדינה קובעת את היקף הענקתן ואת מידת התמיכה המוסדית בהן."]},{"t":"הזכות לכבוד","ch":[14],"d":["הזכות שלא להיות חשוף ליחס משפיל / מזלזל / מבזה / פוגעני, או ליחס אכזרי ובלתי אנושי.","לזכות לכבוד שתי נגזרות: הזכות לשם טוב והזכות לפרטיות."]},{"t":"הזכות לפרטיות","ch":[14],"d":["הזכות לחיות ללא חשיפה / התערבות / חדירה לחייו, לגופו או לחפציו של אדם ללא רשות."]},{"t":"הזכות לשם טוב","ch":[14],"d":["הזכות שלא יפרסמו אודות אדם מידע שיקרי שלילי."]},{"t":"הזכות לחיים וביטחון","ch":[14],"d":["אין לפגוע בחייו ובגופו של אדם.","חובת המדינה להגן על כל בני האדם החיים בשטחה מפני פגיעה בחייהם ובגופם בידי אחרים."]},{"t":"הזכות להליך הוגן","ch":[14],"d":["אדם חף מפשע עד שלא הוכחה אשמתו.","כל אדם זכאי למשפט הוגן ופומבי (יש לזכור שלוש דוגמאות): ייצוג על ידי עורך דין; שופטים בלתי תלויים; ענישה בהתאם לחוק בלבד; זכאי לדעת במה הוא נאשם ולראות את הראיות נגדו; זכאי לערער לערכאה גבוהה יותר."]},{"t":"הזכות לחירות","ch":[14],"d":["לכל אדם זכות לחיות על פי רצונו האישי.","אין לשלול את חירותו של אדם על ידי מעצר או על ידי הגבלת חופש המחשבה והפעולה שלו.","מן הזכות לחירות נגזרות שורה של חירויות: חופש הביטוי, חופש המחשבה והמצפון, חופש התנועה, חופש העיסוק, חופש הדת וחופש מדת.","חוקים רבים בכל חברה מגבילים את הזכות לחירות ונגזרותיה, וגבולות הפגיעה הסבירה שנויים במחלוקת ציבורית בכל חברה דמוקרטית."]},{"t":"חופש הביטוי","ch":[14],"d":["לכל אדם זכות לבטא ולהפיץ את עמדותיו, דעותיו ואמונותיו.","בכל דרך (לבוש, פולחן, תקשורת, אומנות, בדיבור, בכתב וכו') ובפומבי."]},{"t":"חופש המחשבה והמצפון","ch":[14],"d":["לכל אדם זכות להחזיק בכל דעה ומחשבה בכל נושא לפי בחירתו.","לכל אדם זכות לפעול בהתאם למצפונו."]},{"t":"חופש התנועה","ch":[14],"d":["לכל אדם זכות לנוע כרצונו ולהימצא בכל מקום.","זכות הכניסה החופשית למדינה מוקנית לאזרחים בלבד."]},{"t":"חופש העיסוק","ch":[14],"d":["לכל אדם זכות לעבוד בכל עבודה, מקצוע או משלח יד (כפוף להכשרה נדרשת או לרישוי)."]},{"t":"חופש הדת","ch":[14],"d":["לכל אדם הזכות להחזיק בכל אמונה, להשתייך לכל קבוצה דתית ולקיים כל טקס, מנהג או פולחן."]},{"t":"חופש מדת","ch":[14],"d":["לכל אדם הזכות שלא להחזיק באמונה, לא להשתייך לקבוצה דתית, לא לסבול מכפייה או מהטפה דתית ולא לקיים טקס או פולחן דתי בניגוד לרצונו."]},{"t":"הזכות לשוויון","ch":[14],"d":["אין להפלות אדם בשל זהותו, שיוך, סממן חיצוני או מגבלה כלשהי (דת, גזע, מין, העדפה מינית, צבע עור, מוצא, מראה חיצוני, מגבלה מסוימת), אלא במקרים של שונות רלוונטית לנושא הנידון – הבחנה מותרת.","מובן מצומצם – לכל אדם הזכות לשוויון בפני החוק ולשוויון פוליטי (הזכות לבחור ולהיבחר). מובן רחב – זכות לשוויון הזדמנויות במובן הכלכלי והחברתי.","אופני היישום הראויים של הזכות לשוויון שנויים במחלוקת ציבורית בכל חברה דמוקרטית.","לזכות לשוויון שלושה סוגי מדיניות (מצב של חריגה מהשוויון): אפליה פסולה, הבחנה (מותרת) והעדפה מתקנת."]},{"t":"הזכות לקניין","ch":[14],"d":["לכל אדם הזכות להחזיק רכוש ולעשות בו כרצונו.","אין לפגוע בקניינו של אדם.","קניין חומרי – רכוש מוחשי בעל ערך כלכלי.","קניין רוחני – פטנט / רעיון / המצאה / יצירה בעלת ערך כלכלי."]},{"t":"אפליה פסולה","ch":[15],"d":["פגיעה בזכות לשוויון על ידי הענקת יחס שונה לבני אדם.","ללא סיבה מוצדקת, ובפרט בשל זהות, שיוך, סממן חיצוני או מגבלה כלשהי (דת, גזע, מין, העדפה מינית, צבע עור, מוצא, מראה חיצוני, מגבלה מסוימת)."]},{"t":"הבחנה (מותרת)","ch":[15],"d":["הענקת יחס לא שוויוני לבני אדם מסיבות מוצדקות, כאשר השוני ביניהם רלוונטי לנושא הנידון.","חוקים רבים בדמוקרטיה מבוססים על הבחנה.","אינה בהכרח מוגבלת בזמן.","מיועדת בעיקר לפרט בעל צרכים שונים."]},{"t":"העדפה מתקנת","ch":[15],"d":["הענקת הטבה לקבוצה, אוכלוסייה או מגזר חלשים בחברה אשר סבלו מקיפוח או מפערים.","ניתנת למשך זמן מסוים.","במטרה לצמצם פערים ואי-שוויון.","קיים ויכוח ציבורי לגבי היקף השימוש הראוי במדיניות זו, בין השאר מכיוון שהיא יוצרת אפליה כלפי פרטים אחרים."]},{"t":"חובות האדם כאדם","ch":[16],"d":["להכיר בזכויותיו של הזולת ולהימנע מפגיעה בזכויות של אדם אחר."]},{"t":"חובות האזרח","ch":[16],"d":["החובה לציית לחוק ולחובות הקבועות בו (תשלום מיסים, שירות צבאי וכו').","קיים ערך אזרחי להשתתפות בעיצוב החיים הציבוריים (הצבעה בבחירות, ביקורת השלטון, השתתפות אזרחית וכו').","קיים ערך אזרחי בתרומה לקהילה."]},{"t":"זכויות מתנגשות","ch":[16],"d":["הזכויות הן יחסיות ואינן מוחלטות – הן סותרות לא פעם זו את זו, ובאף חברה אנושית הן אינן ניתנות להגשמה באורח מלא.","לכן במקרה של התנגשות בין זכויות או בין זכות לאינטרס ציבורי נדרש בית המשפט לשקלל ולבצע איזון סביר בין הזכויות, ובמקרה הצורך אף לקבוע איזו זכות גוברת על השנייה.","העילות הבסיסיות המוצדקות להגבלת זכויותיו של אדם הן כאשר מימושן פוגע בזכויות הזולת או באינטרס הציבורי."]},{"t":"הגישה הליברלית","ch":[17],"d":["מדגישה את החירות הכלכלית על פני השוויון החברתי-כלכלי.","דגש על יוזמה פרטית ותחרות; דוגלת בפעילות במסגרת שוק חופשי.","מעורבות המדינה בתחום החברתי-כלכלי היא מינימלית.","תמיכה בצמצום המיסוי למינימום.","דוגמאות: הפרטה, קיצוץ תקציבים, צמצום קצבאות."]},{"t":"הגישה הסוציאל-דמוקרטית","ch":[17],"d":["מדגישה את השוויון החברתי-כלכלי על פני החירות הכלכלית; דוגלת בצמצום פערים.","במקרה הצורך הפרט החלש יכול להישען על סיוע חברתי-כלכלי מהמדינה.","המדינה מעורבת בתחום החברתי-כלכלי במידה רבה; מחויבות ליצור רשת ביטחון סוציאלי רחבה ולהבטיח קיום בסיסי בכבוד לכל אדם.","תמיכה במיסוי גבוה על העשירונים העליונים.","דוגמאות: סבסוד שירותים, הענקת שירותים חברתיים, חקיקה חברתית, הלאמה."]},{"t":"דמוקרטיה מתגוננת","ch":[18],"d":["הגנה על המשטר הדמוקרטי, על עקרונותיו ועל אופי המדינה (כללי משחק, ערכים דמוקרטיים ואופי המדינה).","ההגנה היא מפני אדם או קבוצה שפועלים בזירה הציבורית תוך ניצול הכלים הדמוקרטיים כדי לחסל את המשטר הדמוקרטי או לפגוע באופי המדינה.","במקרים שבהם האיום ממשי, המדינה מתגוננת על ידי שלילת הזכות להיבחר ולפעול פוליטית, תוך הגבלת חופש הביטוי וההתאגדות."]},{"t":"דמוקרטיה מתגוננת בישראל","ch":[18],"d":["במדינת ישראל נעשה שימוש ברעיון הדמוקרטיה המתגוננת.","על פי חוק-יסוד: הכנסת וחוק המפלגות, מפלגה אינה יכולה להשתתף בבחירות לכנסת אם יש במטרותיה: שלילת קיומה של ישראל כמדינה יהודית ודמוקרטית; הסתה לגזענות; תמיכה במאבק מזוין של מדינת אויב או ארגון טרור נגד מדינת ישראל."]},{"t":"חקיקת חירום (תקנות לשעת חירום)","ch":[19],"d":["הממשלה מוסמכת להתקין תקנה לשעת חירום לטובת הגנת המדינה, ביטחון הציבור וקיום אספקה ושירותים חיוניים.","ייחודן בכך שאף שהן חקיקת משנה, הן יכולות לגבור על הוראות חוק (למעט חוקים חסינים כמו חוק-יסוד: כבוד האדם וחירותו, חוק-יסוד: חופש העיסוק וחוק-יסוד: הכנסת).","לפי החוק בישראל ניתן להתקינן רק כאשר מוכרז מצב חירום במדינה (על ידי הכנסת). בפועל, מאז הקמת המדינה מוכרז בה על ידי הכנסת מצב חירום (ההכרזה מחודשת אחת לשנה)."]},{"t":"מעצר מנהלי","ch":[19],"d":["מעצר מניעתי מיידי ללא הליך פלילי רגיל כנגד העצור, גם בלי שהוא מואשם בביצוע עבירה כלשהי (בסמכותו של שר הביטחון להורות עליו).","מטרתו למנוע פגיעה בביטחון הציבור או בביטחון המדינה.","הליך הנתון לביקורת רבה בשל הפגיעה הקשה בזכויות, ולכן חלות עליו הגבלות בחוק (בסמכות שר הביטחון בלבד לבצע מעצר מנהלי לפרק זמן ארוך), תקף לתקופה של שישה חודשים וניתן להארכה."]},{"t":"חוק-יסוד – במה הוא שונה מחוק רגיל","ch":[20],"d":["צורה – הכותרת: בכותרת יופיעו המילים \"חוק-יסוד\".","צורה – ניסוח כללי: החוק ינוסח במילים כלליות; הפירוט ייעשה בחוקים רגילים, על בסיס חוקי היסוד.","צורה – שנת החקיקה: בחוק-יסוד לא מופיע התאריך, משום שחקיקה מאוחרת מבטלת חקיקה קודמת.","תוכן: התוכן של חוק-יסוד עוסק בנושאים שאמורים להיות בחוקה. התוכן כללי ומציג את הבסיס הראוי לחוקים הבאים. הנושאים הם העקרונות המרכזיים של המדינה, כמו היות מדינת ישראל מדינה יהודית ודמוקרטית, סמכויות רשויות השלטון השונות וזכויות האדם והאזרח."]},{"t":"חוק-יסוד: כבוד האדם וחירותו","ch":[20],"d":["חוק-יסוד זה הוא חלק מחוקי היסוד, שהם חלק בלתי נפרד מהיסודות החוקתיים של המדינה, שאמורים להוות תשתית לחוקה העתידית.","מפרט את זכויות היסוד של האדם בישראל, הכוללות את: הזכות לחיים ולשלמות הגוף, זכות הקניין, הזכות לכבוד ולפרטיות וחופש התנועה (יש לזכור שתיים).","שאלת פרשנותו המרחיבה של החוק והשימוש שעושה בו בית המשפט כבסיס לפסילת חקיקה של הכנסת נתונה במחלוקת ציבורית."]},{"t":"פסקת ההגבלה","ch":[20],"d":["ניתן לחוקק חוק הסותר את הזכויות שבחוק-היסוד רק בתנאי שהוא \"הולם את ערכיה של מדינת ישראל ונועד לתכלית ראויה\" ופגיעתו בזכות מידתית."]},{"t":"סוגיית \"מיהו יהודי\" בחוק השבות","ch":[20],"d":["מדינת ישראל התמודדה במהלך השנים עם השאלה מהי הגדרתו המדויקת של יהודי הזכאי לעלייה לארץ מתוקף חוק השבות.","בתיקון לחוק השבות שבוצע בשנת 1970 נקבע כי \"יהודי הוא מי שנולד לאם יהודייה, או שנתגייר והוא אינו בן דת אחרת\".","החוק אינו מגדיר מהו הגיור המאפשר הגדרה כיהודי לצורך החוק (גיור אורתודוקסי / רפורמי / קונסרבטיבי), והנושא נתון למחלוקת ציבורית רבת שנים."]},{"t":"המהפכה החוקתית","ch":[21],"d":["תהליך שהחל בשנת 1992. בשנה זו נחקקו שני חוקי יסוד העוסקים בזכויות אדם ואזרח: כבוד האדם וחירותו וחופש העיסוק, שקיבעו את זכויות האדם והאזרח והעניקו להם מעמד על-חוקתי.","חקיקת חוקי יסוד אלה אפשרה לבית המשפט לפסול חוקים העומדים בסתירה לתוכן חוקי היסוד.","חוקי היסוד הללו הפכו לכלי מרכזי של בית המשפט בהגנה על זכויות האדם והאזרח בישראל ובהגנה מפני עריצות שלטונית.","המשמעות היא שלכנסת, למרות היותה הרשות הנבחרת והמייצגת את העם, אסור לחוקק חוקים הסותרים את הערכים המעוגנים בחוקי היסוד – עובדה המעניקה לבית המשפט כוח שיפוטי רב.","מאז החלה המהפכה החוקתית היא נתונה בוויכוח ציבורי מתמיד – האם לבג\"ץ יש סמכות לפסול חוקים שחוקקה הכנסת הנבחרת על ידי העם אם הם נוגדים את חוקי היסוד, או שאין לו סמכות לעשות זאת מפני שחוקי היסוד אינם חוקה ובג\"ץ אינו יכול לפסול חוקים של הרשות הנבחרת."]},{"t":"נימוקים בעד המהפכה החוקתית","ch":[21],"d":["הכנסת היא שיצרה את המהפכה החוקתית (הרשות המכוננת), ובסמכותה לנסח את סעיפי החוקה. חקיקת חוקי היסוד היא מימוש תפקידה של הכנסת כרשות מכוננת (שלטון העם).","הכנסת היא שחוקקה את חוקי היסוד, ולכן מקור הסמכות של בתי המשפט לפסול חוקים של הכנסת המנוגדים לחוקי יסוד בא מחוקים אלו שהכנסת, שהיא הרשות המחוקקת, חוקקה (שלטון החוק).","חוקי היסוד המעגנים את זכויות האדם מממשים את היותה של מדינת ישראל מדינה דמוקרטית – הם מגנים על זכויות האדם מפני חקיקה הפוגעת בהן. המהפכה החוקתית ממשיכה מסורת של בתי משפט בישראל בהגנה על זכויות אדם, וזאת באמצעות חוקי היסוד (עקרון זכויות האדם).","רוב המדינות הדמוקרטיות מכירות בזכותם של בתי המשפט לפסול חוקים של הרשות המחוקקת אם הם נוגדים את זכויות האדם ואת עקרונות הדמוקרטיה – המהפכה החוקתית נחוצה לבתי המשפט כדי להגן על זכויות אדם בישראל, דבר הזוכה לתמיכה רחבה (עקרון הפרדת הרשויות)."]},{"t":"נימוקים נגד המהפכה החוקתית","ch":[21],"d":["העם לא הסמיך את הכנסת לחוקק חוקה – אזרחי המדינה יודעים שהם בוחרים את נציגיהם לכנסת, שהיא הרשות המחוקקת ולא הרשות המכוננת (שלטון העם).","הכנסת לא התכוונה לאמץ חוקה – חוקי היסוד הנוגעים לזכויות אדם נחקקו בשנת 1992 ללא דיון ציבורי, בנוכחות מצומצמת של חברי כנסת ובתקופת ממשלת מעבר. אימוץ חוקה הוא תהליך מהותי בחייה של אומה ולכן הוא צריך להתקבל לאחר דיון ציבורי ארוך ומקיף ובהסכמה רחבה, דבר שלא קרה בישראל (עקרון הכרעת הרוב).","בית המשפט יוצר את החוקה, דבר שלא הוסמך אליו – חוקות במדינות דמוקרטיות מתקבלות ביום כינונה של החוקה. בישראל המהפכה החוקתית לא התרחשה כשחוקקה הכנסת את חוקי היסוד, אלא מספר שנים מאוחר יותר, כאשר בג\"ץ פירש את חוקי היסוד כחוקתיים. בכך למעשה הכריז בית המשפט על חוקי היסוד כחוקה, דבר שאינו מוסמך לעשות משום שהוא לא נבחר על ידי העם. רק הכנסת מוסמכת לעשות זאת בשם העם (עקרון הפרדת הרשויות)."]},{"t":"אקטיביזם שיפוטי","ch":[21,24],"d":["מדיניות מרחיבה של בית המשפט בהתערבותו בפעולות הרשות המבצעת והמחוקקת.","באה לידי ביטוי בבחינת סבירות שיקול הדעת של הממשלה במינויים ובהחלטות שונות, ובמהפכה החוקתית.","נתונה בוויכוח ציבורי-ערכי במדינת ישראל."]},{"t":"נימוקים בעד אקטיביזם שיפוטי","ch":[21],"d":["בית המשפט מגן על עקרונות זכויות האדם, הדמוקרטיה ושלטון החוק, דבר המחייב את הרשות המחוקקת והמבצעת לפעול על פי עקרונות אלו כדי לעמוד בהכרעת בג\"ץ.","בית המשפט משמש כביטוי לרצון העם, להגבלת השלטון ולשמירה על האינטרסים ארוכי הטווח של החברה, בעוד נבחרי הציבור מייצגים לא פעם אינטרסים פוליטיים קצרי טווח.","החלטות השופטים אובייקטיביות, מקצועיות ונקיות משיקולים זרים, ומבוססות על עקרונות הצדק, היושר וההגינות, בשונה משיקוליהם של נבחרי הציבור הכפופים לאילוצים פוליטיים."]},{"t":"נימוקים נגד אקטיביזם שיפוטי","ch":[21],"d":["פסילת חוקים על ידי בית המשפט פוגעת בעקרון שלטון העם, שכן העם הסמיך את הכנסת לחוקק חוקים, וביטול חוקים על ידי בית המשפט פוגע הלכה למעשה ברצון העם ונבחריו.","תפקיד הרשות השופטת הוא לדון בתחום השפיטה ולא בחקיקה; התערבות בית המשפט בחקיקה פוגעת ומחלישה את הרשות המחוקקת, דבר שאינו בהכרח בתחום סמכותו ולמעשה מנוגד לעקרון הפרדת הרשויות.","חריגה מסמכות – התערבות בית המשפט במינוי שרים ובעלי תפקידים בשירות הציבורי, הנתון בסמכות ראש הממשלה, עלולה לפגוע בסמכות נבחרי הציבור בקביעת בעלי התפקידים הפוליטיים והביצועיים שאמורים להוציא לפועל את מדיניות הממשלה והעומד בראשה, שנבחרו על ידי הציבור.","פגיעה באינטרס הציבורי – קידום עקרונות הדמוקרטיה וההגנה על זכויות האדם על ידי בית המשפט נעשים לא פעם בניגוד לאינטרסים הביטחוניים והמדיניים ותוך פגיעה באופייה היהודי של מדינת ישראל, בניגוד לרצון העם."]},{"t":"פסקת ההתגברות","ch":[21],"d":["מאפשרת לכנסת לחוקק, לזמן קצוב של ארבע שנים, חקיקה שאינה עומדת בתנאי פסקת ההגבלה שבחוק-יסוד ופוגעת בזכויות אדם, בכפוף לשלושה תנאים מצטברים: החריגה נעשתה בחוק; החוק מכיל ציון מפורש של החריגה; החוק אושר על ידי רוב מיוחס של 61 חברי כנסת לפחות. לאחר ארבע שנים פוקעת פסקת ההתגברות, אך ניתן לחדשה מיד.","ההיגיון העומד מאחורי פסקת ההתגברות הוא איזון בין רשויות השלטון: בעוד שבשלטון פרלמנטרי בלתי חוקתי יש עליונות לרשות המחוקקת על הרשות השופטת, הרי שבשלטון חוקתי – שלפיו בית משפט מבטל חוקים – יש עליונות לרשות השופטת.","הטענה היא שכשם ששלטון פרלמנטרי ללא הגבלות אינו בריא, כך גם שלטון שיפוטי ללא הגבלות אינו בריא. יש צורך במערכת מאוזנת של איזונים ובלמים בין רשויות השלטון: הפרלמנט מחוקק חוק, ואז לבית המשפט יש אפשרות לומר את דברו על חוקתיותו; ולמחוקק, שהוא נבחר הציבור, מתאפשר לומר אם למרות קביעת בית המשפט הוא מעוניין בחוק.","ההגבלה לארבע שנים היא הגבלה לקדנציה אחת של הכנסת, באופן שגם הכנסת הבאה תצטרך להכריע אם הפגיעה החוקתית הזו הולמת את ערכיה.","פסקת ההתגברות נמצאת אך ורק בחוק-יסוד: חופש העיסוק."]},{"t":"קואליציה","ch":[22],"d":["(לרוב) סיעות הקואליציה מהוות יחד רוב של חברי הכנסת בפרלמנט ומהוות את בסיס התמיכה של הממשלה בפרלמנט.","מבוססת על הסכמים קואליציוניים בין הסיעות המרכיבות אותה."]},{"t":"אופוזיציה","ch":[22],"d":["סיעות הכנסת שאינן שותפות בממשלה.","מספר החברים באופוזיציה קטן בדרך כלל ממספר חברי הקואליציה וממחצית חברי הפרלמנט.","תפקידי האופוזיציה: לבקר ולפקח על השלטון ולהציב לו חלופה; ליטול חלק בחקיקה ובוועדות הכנסת."]},{"t":"מליאה","ch":[22],"d":["הגוף המרכזי שבו נעשית עבודת הכנסת ובו מתקבלות מרבית ההחלטות.","חברים בגוף זה כל 120 חברי הכנסת.","דיוני המליאה מתקיימים באולם המליאה, וההחלטות מתקבלות ברוב קולות של חברי הכנסת הנוכחים בדיון (למעט סוגיות שבהן נדרש בחוק רוב מיוחד).","הנושאים העיקריים הנדונים במליאה: הצעה לסדר יום, שאילתה, הצעת חוק או הצעת אי-אמון."]},{"t":"ועדות הכנסת","ch":[22],"d":["חלק עיקרי מעבודת חברי הכנסת הוא השתתפות בדיוני ועדות הכנסת.","הוועדות דנות בתחומים מוגדרים.","נושאי הדיונים: דיון על פרטי הצעות חוק וניסוחן; אישור חקיקת משנה; דיון עם אנשי מקצוע; וכל עניין אחר אשר נמסר לדיונן על ידי הכנסת.","תפקיד: ייעול העבודה הפרלמנטרית (בירור פרטים, היוועצות מומחים, שיתוף הציבור)."]},{"t":"כינון ממשלה","ch":[22],"d":["הכנסת מכוננת את הממשלה ומוסמכת להצביע אי-אמון בממשלה."]},{"t":"ייצוג האזרחים","ch":[22],"d":["הכנסת מייצגת את ריבונות האזרחים ואת העמדות השונות בחברה."]},{"t":"חקיקה","ch":[22],"d":["תפקידה העיקרי של הכנסת הוא חקיקת חוקים."]},{"t":"פיקוח וביקורת","ch":[22],"d":["הכנסת מהווה מנגנון פיקוח מוסדי שתפקידו לפקח ולבקר את מדיניותה ופעולותיה של הרשות המבצעת, על ידי אופוזיציה, ועדות, אישור תקציב וכלים פרלמנטריים שונים."]},{"t":"מינוי בעלי תפקידים","ch":[22],"d":["הכנסת ממנה בכירים כמו נשיא המדינה ומבקר המדינה."]},{"t":"אסיפה מכוננת","ch":[22],"d":["בהתאם לפסיקת בית המשפט, הכנסת מהווה גם רשות מכוננת לענייני חוקה."]},{"t":"קביעת מדיניות וביצועה","ch":[23],"d":["קבלת החלטות והתוויית קווי פעולה בתחומים שונים הנמצאים באחריות משרדי הממשלה."]},{"t":"סמכות שיורית","ch":[23],"d":["הממשלה מוסמכת לעשות בשם המדינה כל פעולה שאינה מוטלת בחוק על רשות אחרת (זהו חריג לכלל שהרשות המבצעת מוסמכת לפעול רק בתחומים שהוסמכה לעסוק בהם).","אין לפגוע בזכויות אדם מכוח סמכות שיורית, ולעניין זה נחוצה הסמכה מפורשת בחוק."]},{"t":"קביעת תקנות – חקיקת משנה","ch":[23],"d":["חקיקה הנעשית על ידי הרשות המבצעת / השרים / רשות מקומית (באמצעות צווים, תקנות, חוקי עזר עירוניים).","נועדה לאפשר את ביצוע החוק ואת קידום מטרותיו על ידי פירוט העקרונות שנקבעו בחקיקה ראשית.","אסור שחקיקת משנה תסתור חקיקה ראשית.","נתונה לפיקוח של ועדות הכנסת."]},{"t":"חקיקת תקנות לשעת חירום","ch":[23],"d":["הממשלה מוסמכת להתקין תקנה לשעת חירום לטובת הגנת המדינה, ביטחון הציבור וקיום אספקה של שירותים חיוניים.","ייחודן בכך שאף שהן חקיקת משנה, הן יכולות לגבור על הוראות חוק.","לפי החוק בישראל ניתן להתקינן רק כאשר מוכרז מצב חירום במדינה. בפועל, מאז הקמת המדינה מוכרז בה על ידי הכנסת מצב חירום (ההכרזה מחודשת אחת לשנה)."]},{"t":"אחריות ממשלתית משותפת","ch":[23],"d":["כל שר בממשלה נושא באחריות על כל החלטות הממשלה, גם אם התנגד להחלטה מסוימת אך נותר בדעת מיעוט.","מתוקף אחריות זו מנוע שר מלמתוח ביקורת על החלטת הממשלה בפומבי או להצביע נגדה בכנסת."]},{"t":"אחריות מיניסטריאלית","ch":[23],"d":["לכל שר בממשלה אחריות כלפי הכנסת והממשלה ביחס לנושאים שבתחום משרדו ולפעולות סגל עובדיו, אף אם נעשו שלא בידיעתו.","חובתו של שר לדווח בכנסת על פעולות משרדו, להשיב על שאילתות ועל הצעות לסדר היום הקשורות לתחום משרדו, וכן לתקן בעיות שבתחום משרדו.","האחריות המיניסטריאלית היא ציבורית בלבד ולא משפטית (לעומת אחריות אישית המוטלת על השר ביחס למעשים או מחדלים שביצע בעצמו)."]},{"t":"אי-תלותה ועצמאותה של הרשות השופטת בישראל","ch":[24],"d":["הרשות השופטת עצמאית בהחלטותיה השיפוטיות.","המטרה: להבטיח מימוש הזכות להליך הוגן, את עקרון שלטון החוק ושמירה על אמון הציבור במערכת המשפט.","מרות החוק: השופטים כפופים אך ורק לחוק ופוסקים לפיו.","תנאי העסקת השופטים: שכר השופטים גבוה ונקבע על ידי ועדת הכספים של הכנסת.","משך כהונת שופט הוא עד גיל פרישה (70).","אסור לשופט לשמש בכל תפקיד פוליטי.","הדחת שופט נעשית בגין עבירות חמורות ולא בגין תוכן פסקי הדין שלו.","חסינות השופטים: חסינות מפני אחריות אזרחית בגין הכרעות שיפוטיות ומפני חקירה פלילית (ללא אישור היועץ המשפטי לממשלה)."]},{"t":"בג\"ץ","ch":[24],"d":["בית משפט גבוה לצדק (אחד מתפקידיו של בית המשפט העליון).","מאפשר לכל אדם / ארגון לעתור בקשר להחלטות של רשויות המדינה או של גופים ציבוריים אשר לדעתו גורמות לו עוול או פוגעות בזכויותיו.","משמש ערכאה ראשונה ואחרונה בסוגיות שבהן הוא מטפל.","פועל באמצעות צווים שמבטלים החלטות או פעולות של רשויות המדינה."]},{"t":"צו על תנאי","ch":[24],"d":["צו של בג\"ץ המורה לרשות המשיבה בעתירה להופיע בפני בג\"ץ ולהציג את עמדתה לגבי העתירה."]},{"t":"צו ביניים","ch":[24],"d":["צו של בג\"ץ למשיבה בעתירה להקפיא את המצב הקיים עד לסיום הדיון בעתירה (ניתן במקרים שבהם מדובר בצעדים בלתי הפיכים של הרשויות)."]},{"t":"צו החלטי","ch":[24],"d":["צו הניתן בסיום הדיון בעתירה, ומשמעו קבלת העתירה על ידי בג\"ץ, ביטול החלטת הרשות והנחיה כיצד לפעול."]},{"t":"ביקורת שיפוטית","ch":[24],"d":["ביקורת של מערכת המשפט (בדרך כלל על ידי בג\"ץ) על הרשות המחוקקת ועל הרשות המבצעת.","מתבטאת בישראל, מאז המהפכה החוקתית, במידה רבה על ידי פסילת חוקים הסותרים חוקי יסוד.","סמכות בית המשפט לביקורת שיפוטית והיקפה הראוי שנויים במחלוקת ציבורית."]}]};
+const CHAPTERS = DATA.chapters, POOL = DATA.concepts, SETS = DATA.sets;
+(function(){                       // בונים את מאגר השאלות: רק שורות ייחודיות
+  const cnt = {};
+  POOL.forEach(c => c.d.forEach(d => cnt[d] = (cnt[d] || 0) + 1));
+  POOL.forEach(c => c.q = c.d.filter(d => cnt[d] === 1 && d.indexOf('טיפ:') !== 0));
+})();
+const BY_TERM = new Map(POOL.map(c => [c.t, c]));
+const shortOf = t => (BY_TERM.get(t) && BY_TERM.get(t).sn) || t;
+const LETTERS = ["א","ב","ג","ד"];
+/* ==========================================================================
+   הגדרות המורה. אם יש בסיס נתונים, מלאו כאן את שתי השורות הראשונות.
+   בלי בסיס נתונים המשחק עובד, והתוצאות נשמרות רק במכשיר שבו שיחקו.
+   ========================================================================== */
+const CONFIG = {
+  SUPABASE_URL: 'https://ytoeyupoymmxhsejgmlw.supabase.co',
+  SUPABASE_KEY: 'sb_publishable_ZxkVhiIaA92OcbLppURmvQ_M78iJ2f6',   // מפתח ציבורי בלבד
+  TABLE: 'scores',
+  TEACHER_CODE: '1948'              // הקוד לכניסת המורה לדשבורד
+};
+
+/* ---------- שמירת תוצאות ---------- */
+let student = '';
+let memStore = [];
+const LS_OK = (()=>{ try{ localStorage.setItem('__t','1'); localStorage.removeItem('__t'); return true; }catch(e){ return false; } })();
+const DB_ON = !!(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_KEY);
+const IN_FRAME = (()=>{ try{ return window.self !== window.top; }catch(e){ return true; } })();
+const SANDBOXED = IN_FRAME || /claudeusercontent\.com|claude\.ai/i.test(location.hostname);
+const LS_KEY = 'civics_scores_v1';
+
+function localLoad(){
+  if(LS_OK){ try{ return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }catch(e){} }
+  return memStore.slice();
+}
+function localSaveAll(arr){
+  if(LS_OK){ try{ localStorage.setItem(LS_KEY, JSON.stringify(arr)); return; }catch(e){} }
+  memStore = arr.slice();
+}
+let lastDbErr = '';
+async function saveResult(rec){
+  if(DB_ON){
+    try{
+      const r = await fetch(CONFIG.SUPABASE_URL + '/rest/v1/' + CONFIG.TABLE, {
+        method:'POST',
+        headers:{ 'apikey':CONFIG.SUPABASE_KEY,
+                  'Content-Type':'application/json', 'Prefer':'return=minimal' },
+        body: JSON.stringify([rec])
+      });
+      if(r.ok) return 'db';
+      lastDbErr = 'שמירה נכשלה, קוד ' + r.status + ' ' + (await r.text()).slice(0,120);
+    }catch(e){ lastDbErr = 'שמירה נכשלה: ' + e.message; }
+  }
+  const arr = localLoad(); arr.push(rec); localSaveAll(arr);
+  return 'local';
+}
+async function loadResults(){
+  if(DB_ON){
+    try{
+      const r = await fetch(CONFIG.SUPABASE_URL + '/rest/v1/' + CONFIG.TABLE +
+        '?select=*&order=created_at.desc&limit=1000',
+        { headers:{ 'apikey':CONFIG.SUPABASE_KEY } });
+      if(r.ok) return { rows: await r.json(), where:'db' };
+      lastDbErr = 'קריאה נכשלה, קוד ' + r.status + ' ' + (await r.text()).slice(0,120);
+    }catch(e){ lastDbErr = 'קריאה נכשלה: ' + e.message; }
+    return { rows: localLoad().slice().reverse(), where:'dberr' };
+  }
+  return { rows: localLoad().slice().reverse(), where:'local' };
+}
+
+
+const $ = id => document.getElementById(id);
+const shuffle = a => { for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];} return a; };
+const sample = (a,n) => shuffle(a.slice()).slice(0,n);
+
+let selected = new Set();      // מספרי פרקים
+let roundLen = 12;
+let state = null;
+
+
+/* ---------- צליל ---------- */
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let actx = null, muted = false;
+function ac(){
+  if(!actx){ const C = window.AudioContext || window.webkitAudioContext; if(!C) return null; actx = new C(); }
+  if(actx.state === 'suspended') actx.resume();
+  return actx;
+}
+function tone(freq, at, dur, type, vol){
+  const c = ac(); if(!c || muted) return;
+  const o = c.createOscillator(), g = c.createGain();
+  o.type = type || 'triangle'; o.frequency.value = freq;
+  const t = c.currentTime + at;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol || 0.16, t + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(c.destination);
+  o.start(t); o.stop(t + dur + 0.05);
+}
+function sfxGood(){
+  [523.25, 659.25, 783.99].forEach((f,i)=> tone(f, i*0.075, 0.26, 'triangle', 0.16));
+  tone(1046.5, 0.22, 0.36, 'triangle', 0.12);
+}
+function sfxBad(){
+  tone(207.65, 0, 0.20, 'sawtooth', 0.10);
+  tone(155.56, 0.15, 0.36, 'sawtooth', 0.10);
+}
+function sfxWin(){
+  [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f,i)=> tone(f, i*0.11, 0.34, 'triangle', 0.16));
+  tone(1567.98, 0.60, 0.7, 'triangle', 0.13);
+}
+function sfxLose(){
+  [392, 349.23, 311.13, 261.63].forEach((f,i)=> tone(f, i*0.16, 0.34, 'sawtooth', 0.10));
+}
+$('mute').onclick = () => {
+  muted = !muted;
+  $('mute').textContent = muted ? '\uD83D\uDD07' : '\uD83D\uDD0A';
+  $('mute').setAttribute('aria-pressed', muted ? 'true' : 'false');
+  if(!muted) tone(660, 0, 0.12, 'triangle', 0.12);
+};
+
+/* ---------- קונפטי ופרצוף מאוכזב ---------- */
+const CONFETTI = ['\uD83C\uDF89','\uD83C\uDF8A','\u2728','\uD83E\uDD73','\uD83C\uDF88','\u2B50'];
+function confetti(n){
+  if(reduced) return;
+  const layer = $('fx');
+  for(let i=0;i<n;i++){
+    const el = document.createElement('span');
+    el.className = 'confetti';
+    el.textContent = CONFETTI[Math.random()*CONFETTI.length|0];
+    el.style.left = (Math.random()*100) + 'vw';
+    el.style.fontSize = (15 + Math.random()*24) + 'px';
+    el.style.setProperty('--x', (Math.random()*180-90) + 'px');
+    el.style.setProperty('--r', (Math.random()*900-450) + 'deg');
+    el.style.animationDelay = (Math.random()*0.4) + 's';
+    el.style.animationDuration = (1.7 + Math.random()*1.5) + 's';
+    layer.appendChild(el);
+    setTimeout(()=> el.remove(), 4200);
+  }
+}
+function sadFace(emoji){
+  if(reduced) return;
+  const el = document.createElement('div');
+  el.className = 'sadfx';
+  el.textContent = emoji || '\uD83D\uDE1E';
+  $('fx').appendChild(el);
+  setTimeout(()=> el.remove(), 1300);
+}
+
+/* ---------- מסך פתיחה ---------- */
+function buildChips(){
+  const box = $('chips');
+  const all = document.createElement('button');
+  all.className = 'chip all'; all.textContent = 'כל הפרקים';
+  all.setAttribute('aria-pressed','true');
+  all.onclick = () => { selected.clear(); paintChips(); };
+  box.appendChild(all);
+  Object.keys(CHAPTERS).map(Number).sort((a,b)=>a-b).forEach(n=>{
+    const b = document.createElement('button');
+    b.className = 'chip'; b.dataset.n = n;
+    b.textContent = n + '. ' + CHAPTERS[n];
+    b.setAttribute('aria-pressed','false');
+    b.onclick = () => { selected.has(n) ? selected.delete(n) : selected.add(n); paintChips(); };
+    box.appendChild(b);
+  });
+}
+function paintChips(){
+  document.querySelectorAll('.chip[data-n]').forEach(b=>
+    b.setAttribute('aria-pressed', selected.has(Number(b.dataset.n)) ? 'true':'false'));
+  document.querySelector('.chip.all').setAttribute('aria-pressed', selected.size===0 ? 'true':'false');
+  $('go').disabled = pickPool().cs.length < 4;
+}
+function pickPool(){
+  const cs = selected.size === 0 ? POOL  : POOL.filter(c => c.ch.some(n => selected.has(n)));
+  const ss = selected.size === 0 ? SETS  : SETS.filter(s => selected.has(s.ch));
+  return { cs, ss };
+}
+$('len').onclick = e => {
+  const b = e.target.closest('button'); if(!b) return;
+  [...$('len').children].forEach(x=>x.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true');
+  roundLen = Number(b.dataset.n);
+};
+
+/* ---------- בניית סיבוב ---------- */
+const keyOf = it => it.k === 'def' ? ('c|' + it.c.t) : ('s|' + it.s.g);
+
+function startRound(pool){
+  const items = pool.cs.filter(c => c.q.length).map(c => ({k:'def', c}))
+        .concat(pool.ss.map(s => ({k:'set', s})));
+  const n = roundLen === 0 ? items.length : Math.min(roundLen, items.length);
+  state = { pool, queue: sample(items, n), i:0, score:0, streak:0, best:0, right:0, missed:[] };
+  $('start').classList.add('hidden'); $('end').classList.add('hidden');
+  $('play').classList.remove('hidden');
+  window.scrollTo(0,0);
+  nextQuestion();
+}
+
+/* אפשרויות לשאלת מושג: הסחות מאותו פרק קודם כול */
+function defOptions(c){
+  const sameChapter = state.pool.cs.filter(x => x.t !== c.t && x.ch.some(n => c.ch.includes(n)));
+  const rest = POOL.filter(x => x.t !== c.t && !sameChapter.includes(x));
+  let opts = sample(sameChapter, 3);
+  if(opts.length < 3) opts = opts.concat(sample(rest, 3 - opts.length));
+  return shuffle(opts.concat([c]).map(o => ({ label: o.t, ok: o.t === c.t })));
+}
+
+/* אפשרויות לשאלת כותרת משנה: רשימות שלמות, אחת נכונה */
+function setOptions(s){
+  const disp = arr => arr.map(shortOf).join('  ·  ');
+  const sameCh = POOL.filter(c => c.ch.includes(s.ch) && !s.members.includes(c.t)).map(c => c.t);
+  const other  = POOL.filter(c => !c.ch.includes(s.ch)).map(c => c.t);
+  const opts = [{ label: disp(s.members), ok: true }];
+  const seen = new Set([s.members.slice().sort().join('|')]);
+  let guard = 0;
+  while(opts.length < 4 && guard++ < 400){
+    const arr = s.members.slice();
+    const swaps = s.members.length >= 5 ? 2 : 1;
+    for(let j=0;j<swaps;j++){
+      const src = (sameCh.length && Math.random() < 0.7) ? sameCh : other;
+      const cand = src[Math.random()*src.length|0];
+      if(!cand || arr.includes(cand)) continue;
+      arr[Math.random()*arr.length|0] = cand;
+    }
+    const key = arr.slice().sort().join('|');
+    if(seen.has(key)) continue;
+    seen.add(key);
+    opts.push({ label: disp(arr), ok: false });
+  }
+  return shuffle(opts);
+}
+
+function nextQuestion(){
+  if(state.i >= state.queue.length) return finish();
+  const it = state.queue[state.i];
+  let opts;
+  if(it.k === 'def'){
+    $('kicker').textContent = 'איזה מושג מוגדר כאן?';
+    $('question').textContent = it.c.q[Math.random()*it.c.q.length|0];
+    opts = defOptions(it.c);
+  } else {
+    $('kicker').textContent = 'איזו רשימה נכונה ומלאה?';
+    $('question').textContent = it.s.ask;
+    opts = setOptions(it.s);
+  }
+
+  $('counter').textContent = 'שאלה ' + (state.i+1) + ' מתוך ' + state.queue.length;
+  $('progress').style.width = (state.i / state.queue.length * 100) + '%';
+  $('streak').textContent = state.streak >= 2 ? ('רצף ' + state.streak) : '';
+  $('score').textContent = state.score;
+  paintMiss();
+  $('reveal').innerHTML = '';
+
+  const box = $('slips'); box.innerHTML = '';
+  opts.forEach((o,idx)=>{
+    const b = document.createElement('button');
+    b.className = 'slip' + (it.k === 'set' ? ' list' : ''); b.type = 'button';
+    b.innerHTML = '<span class="letter">'+LETTERS[idx]+'</span><span class="name"></span>';
+    b.querySelector('.name').textContent = o.label;
+    b._ok = o.ok;
+    b.onclick = () => answer(b, o, it, box);
+    box.appendChild(b);
+  });
+}
+
+function paintMiss(){
+  const m = state.missed.length;
+  $('missCount').textContent = m ? ('טעויות ' + m) : '';
+}
+
+function answer(btn, opt, it, box){
+  [...box.children].forEach(b => b.disabled = true);
+  if(opt.ok){
+    state.streak++; state.best = Math.max(state.best, state.streak); state.right++;
+    state.score += (it.k === 'set' ? 15 : 10) + Math.min(state.streak - 1, 5) * 2;
+    btn.classList.add('right','stamped');
+    btn.insertAdjacentHTML('beforeend','<span class="stamp ok">נכון</span>');
+    sfxGood(); confetti(state.streak >= 3 ? 16 : 10);
+  } else {
+    state.streak = 0;
+    state.missed.push(it);
+    btn.classList.add('wrong','stamped');
+    btn.insertAdjacentHTML('beforeend','<span class="stamp no">פסול</span>');
+    sfxBad(); sadFace('\uD83D\uDE1E');
+    [...box.children].forEach(b=>{
+      if(b._ok){
+        b.classList.add('right','stamped');
+        b.insertAdjacentHTML('beforeend','<span class="stamp ok">התשובה</span>');
+      } else if(b !== btn) b.classList.add('fade');
+    });
+  }
+  $('score').textContent = state.score;
+  $('streak').textContent = state.streak >= 2 ? ('רצף ' + state.streak) : '';
+  paintMiss();
+  showReveal(it);
+  state.i++;
+}
+
+function showReveal(it){
+  const title = it.k === 'def' ? it.c.t : it.s.g;
+  const where = it.k === 'def'
+      ? it.c.ch.map(n => 'פרק ' + n + ' — ' + CHAPTERS[n]).join('  ·  ')
+      : 'פרק ' + it.s.ch + ' — ' + CHAPTERS[it.s.ch];
+  const lines = it.k === 'def'
+      ? it.c.d
+      : it.s.members.map(t => {
+          const c = BY_TERM.get(t);
+          return shortOf(t) + ' — ' + (c && c.d[0] ? c.d[0] : '');
+        });
+
+  $('reveal').innerHTML =
+    '<div class="reveal"><h3></h3><p class="where"></p><ul>' +
+    lines.map(()=>'<li></li>').join('') + '</ul></div>' +
+    '<button class="next" id="nextBtn"></button>';
+  $('reveal').querySelector('h3').textContent = title;
+  $('reveal').querySelector('.where').textContent = where;
+  const items = $('reveal').querySelectorAll('.reveal li');
+  lines.forEach((d,i)=> items[i].textContent = d);
+
+  const nb = $('nextBtn');
+  const last = state.i + 1 >= state.queue.length;
+  nb.textContent = last ? 'לספירת הקולות' : 'לשאלה הבאה';
+  nb.onclick = nextQuestion;
+  nb.focus({preventScroll:true});
+}
+
+/* ---------- סיום ---------- */
+function finish(){
+  $('play').classList.add('hidden');
+  $('end').classList.remove('hidden');
+  window.scrollTo(0,0);
+
+  const asked = state.i || 1;
+  const pct = Math.round(state.right / asked * 100);
+
+  const rank =
+      pct === 100        ? {e:'\uD83C\uDFC6', v:'רשימה נקייה. אף פתק פסול.'} :
+      pct >= 80          ? {e:'\uD83E\uDD47', v:'עברת את אחוז החסימה בגדול.'} :
+      pct >= 60          ? {e:'\uD83E\uDD48', v:'עברת את אחוז החסימה.'} :
+                           {e:'\uD83D\uDDF3\uFE0F', v:'לא עברת את אחוז החסימה.'};
+
+  $('rankEmoji').textContent = rank.e;
+  $('verdict').textContent = rank.v;
+  const first = (student || '').split(' ')[0];
+  $('finalLine').textContent = (first ? first + ', ' : '') + (pct >= 60
+      ? 'המושגים האלה כבר יושבים לך. שווה לחזור עליהם שוב מחר, אבל את בכיוון.'
+      : 'אף אחד לא זוכר 135 מושגים בסיבוב אחד. תרגול קצר וחוזר עובד הכי טוב.');
+
+  $('finalScore').textContent = state.score;
+  $('tRight').textContent = state.right + '/' + asked;
+  $('tStreak').textContent = state.best;
+  $('tLives').textContent = state.missed.length;
+  $('gaugeLbl').textContent = pct + ' אחוז תשובות נכונות';
+  $('gauge').classList.toggle('low', pct < 60);
+  const fill = $('gaugeFill');
+  fill.style.width = '0%';
+  setTimeout(()=> fill.style.width = pct + '%', 120);
+  $('seal').style.display = pct >= 60 ? '' : 'none';
+
+  if(pct >= 60){ sfxWin(); confetti(28); setTimeout(()=> confetti(16), 600); }
+  else { sfxLose(); sadFace('\uD83D\uDE1F'); }
+
+  saveResult({
+    student: student || 'ללא שם',
+    score: state.score,
+    correct: state.right,
+    total: asked,
+    pct: pct,
+    chapters: selected.size === 0 ? 'כל הפרקים' : ('פרקים ' + [...selected].sort((a,b)=>a-b).join(', ')),
+    created_at: new Date().toISOString()
+  });
+
+  const uniq = [...new Map(state.missed.map(it => [keyOf(it), it])).values()];
+  const box = $('missed');
+  if(!uniq.length){ box.innerHTML = ''; $('drill').classList.add('hidden'); return; }
+  $('drill').classList.remove('hidden');
+  box.innerHTML = '<h3>המושגים שכדאי לחזור עליהם</h3>';
+  uniq.forEach(it=>{
+    const d = document.createElement('div');
+    d.className = 'item';
+    d.innerHTML = '<b></b><p></p>';
+    if(it.k === 'def'){
+      d.querySelector('b').textContent = it.c.t;
+      d.querySelector('p').textContent = it.c.d[0];
+    } else {
+      d.querySelector('b').textContent = it.s.g;
+      d.querySelector('p').textContent = it.s.members.map(shortOf).join('  ·  ');
+    }
+    box.appendChild(d);
+  });
+}
+
+/* ---------- כפתורים ---------- */
+$('go').onclick = () => startRound(pickPool());
+$('again').onclick = () => startRound(state.pool);
+$('back').onclick = () => { $('end').classList.add('hidden'); $('start').classList.remove('hidden'); window.scrollTo(0,0); };
+$('drill').onclick = () => {
+  const uniq = [...new Map(state.missed.map(it=>[keyOf(it), it])).values()];
+  const pool = state.pool;
+  state = { pool, queue: shuffle(uniq.slice()), i:0, score:0, streak:0, best:0, right:0, missed:[] };
+  $('end').classList.add('hidden'); $('play').classList.remove('hidden');
+  window.scrollTo(0,0);
+  nextQuestion();
+};
+
+document.addEventListener('keydown', e => {
+  if($('play').classList.contains('hidden')) return;
+  const nb = $('nextBtn');
+  if(e.key === 'Enter' && nb){ nb.click(); return; }
+  const k = Number(e.key);
+  if(k >= 1 && k <= 4){
+    const b = $('slips').children[k-1];
+    if(b && !b.disabled) b.click();
+  }
+});
+
+
+/* ---------- מסך ברוכים הבאים ---------- */
+function goEnter(){
+  const v = $('nameIn').value.trim().replace(/\s+/g,' ');
+  if(v.length < 2){ $('nameErr').textContent = 'נא לכתוב שם.'; $('nameIn').focus(); return; }
+  if(v.split(' ').length < 2){ $('nameErr').textContent = 'נא לכתוב שם פרטי ושם משפחה.'; $('nameIn').focus(); return; }
+  student = v;
+  $('nameErr').textContent = '';
+  $('welcome').classList.add('hidden');
+  $('start').classList.remove('hidden');
+  $('hello').textContent = 'שלום, ' + student.split(' ')[0];
+  window.scrollTo(0,0);
+}
+$('enter').onclick = goEnter;
+$('nameIn').addEventListener('keydown', e => { if(e.key === 'Enter') goEnter(); });
+$('nameIn').addEventListener('input', () => $('nameErr').textContent = '');
+
+/* ---------- דשבורד המורה ---------- */
+let dashRows = [], dashSort = {k:'created_at', dir:-1};
+
+function openDash(){
+  $('gateErr').textContent = '';
+  $('gateIn').value = '';
+  $('gate').classList.remove('hidden');
+  setTimeout(()=> $('gateIn').focus(), 30);
+}
+function tryGate(){
+  if($('gateIn').value.trim() === String(CONFIG.TEACHER_CODE)){
+    $('gate').classList.add('hidden');
+    showDash();
+  } else {
+    $('gateErr').textContent = 'קוד שגוי. נסו שוב.';
+    $('gateIn').select();
+  }
+}
+$('gateOk').onclick = tryGate;
+$('gateCancel').onclick = () => $('gate').classList.add('hidden');
+$('gateIn').addEventListener('keydown', e => {
+  if(e.key === 'Enter') tryGate();
+  if(e.key === 'Escape') $('gate').classList.add('hidden');
+});
+$('gate').addEventListener('click', e => { if(e.target === $('gate')) $('gate').classList.add('hidden'); });
+function showDash(){
+  ['welcome','start','play','end'].forEach(id => $(id).classList.add('hidden'));
+  $('dash').classList.remove('hidden');
+  window.scrollTo(0,0);
+  refreshDash();
+}
+async function refreshDash(){
+  const res = await loadResults();
+  dashRows = res.rows || [];
+  const m = $('dashMode');
+  m.classList.toggle('warn', res.where !== 'db');
+  m.innerHTML = res.where === 'db'
+    ? 'מצב <b>מחובר</b>. התוצאות נאספות מכל התלמידים אל בסיס הנתונים המשותף.'
+    : res.where === 'dberr'
+      ? (SANDBOXED
+          ? 'מצב <b>נתק</b>. הקובץ רץ כרגע מתוך תצוגת התצוגה המקדימה (' + (location.hostname || 'srcdoc') + '), שחוסמת פנייה לשרתים חיצוניים. הורידו את הקובץ ופתחו את הקובץ עצמו, או העלו אותו לאתר, והחיבור יעבוד.'
+          : 'מצב <b>נתק</b>. אין כרגע חיבור לבסיס הנתונים, ומוצגות רק תוצאות מהמכשיר הזה. ' + lastDbErr)
+      : 'מצב <b>מקומי</b>. בלי בסיס נתונים נשמרות רק התוצאות של המכשיר הזה.';
+  $('dashClear').style.display = (res.where === 'db') ? 'none' : '';
+  drawDash();
+}
+function drawDash(){
+  const q = $('dashSearch').value.trim();
+  let rows = dashRows.filter(r => !q || (r.student || '').includes(q));
+  const k = dashSort.k, dir = dashSort.dir;
+  rows = rows.slice().sort((a,b)=>{
+    const x = a[k], y = b[k];
+    if(typeof x === 'number' && typeof y === 'number') return (x - y) * dir;
+    return String(x || '').localeCompare(String(y || ''), 'he') * dir;
+  });
+
+  const body = $('gradesBody'); body.innerHTML = '';
+  rows.forEach(r=>{
+    const tr = document.createElement('tr');
+    const d = r.created_at ? new Date(r.created_at) : null;
+    const when = d ? (d.getDate() + '.' + (d.getMonth()+1) + ' · ' +
+        String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0')) : '';
+    tr.innerHTML = '<td class="nm"></td><td class="pc"><b></b></td><td></td><td></td><td></td><td></td>';
+    const td = tr.children;
+    td[0].textContent = r.student || '';
+    td[1].firstChild.textContent = (r.pct != null ? r.pct : 0) + '%';
+    td[1].firstChild.className = (r.pct >= 60 ? 'pass' : 'fail');
+    td[2].textContent = r.score;
+    td[3].textContent = r.correct + '/' + r.total;
+    td[4].textContent = r.chapters || '';
+    td[5].textContent = when;
+    body.appendChild(tr);
+  });
+
+  $('dashEmpty').classList.toggle('hidden', rows.length > 0);
+  $('gradesTbl').style.display = rows.length ? '' : 'none';
+
+  const names = new Set(dashRows.map(r => r.student));
+  const avg = dashRows.length ? Math.round(dashRows.reduce((s,r)=>s+(r.pct||0),0) / dashRows.length) : 0;
+  const top = dashRows.length ? Math.max(...dashRows.map(r => r.pct || 0)) : 0;
+  $('sGames').textContent  = dashRows.length;
+  $('sPupils').textContent = names.size;
+  $('sAvg').textContent    = avg + '%';
+  $('sTop').textContent    = top + '%';
+}
+$('dashSearch').addEventListener('input', drawDash);
+$('dashRefresh').onclick = refreshDash;
+$('dashBack').onclick = () => {
+  $('dash').classList.add('hidden');
+  $(student ? 'start' : 'welcome').classList.remove('hidden');
+  window.scrollTo(0,0);
+};
+$('teacherLink').onclick = openDash;
+$('restart').onclick = () => {
+  $('play').classList.add('hidden');
+  $('reveal').innerHTML = '';
+  state = null;
+  $('start').classList.remove('hidden');
+  window.scrollTo(0,0);
+};
+$('changeName').onclick = () => {
+  student = '';
+  $('start').classList.add('hidden');
+  $('welcome').classList.remove('hidden');
+  $('nameIn').value = '';
+  $('nameIn').focus();
+  window.scrollTo(0,0);
+};
+document.querySelectorAll('#gradesTbl th').forEach(th=>{
+  th.onclick = () => {
+    const k = th.dataset.k;
+    dashSort = { k, dir: (dashSort.k === k ? -dashSort.dir : (k === 'student' ? 1 : -1)) };
+    drawDash();
+  };
+});
+$('dashDiag').onclick = async () => {
+  const out = $('dashDiagOut');
+  out.classList.remove('hidden');
+  if(!DB_ON){ out.textContent = 'No database configured (CONFIG.SUPABASE_URL / SUPABASE_KEY are empty).'; return; }
+  out.textContent = 'בודק...';
+  if(IN_FRAME) { /* יוצג גם כך, אבל ההסבר חשוב */ }
+  const url = CONFIG.SUPABASE_URL + '/rest/v1/' + CONFIG.TABLE;
+  const H = { 'apikey': CONFIG.SUPABASE_KEY };
+  let log = 'PAGE: ' + location.href.slice(0,120) + '\n' +
+      'SANDBOXED: ' + (SANDBOXED ? 'yes - external connections are blocked here' : 'no') + '\n' +
+      'TARGET: ' + url + '\n';
+  try{
+    const r = await fetch(url + '?select=*&limit=1', { headers:H });
+    log += 'SELECT -> ' + r.status + ' ' + r.statusText + '\n' + (await r.text()).slice(0,300) + '\n\n';
+  }catch(e){ log += 'SELECT -> failed: ' + e.message + '\n\n'; }
+  try{
+    const r = await fetch(url, { method:'POST',
+      headers: Object.assign({}, H, {'Content-Type':'application/json','Prefer':'return=minimal'}),
+      body: JSON.stringify([{ student:'בדיקת חיבור', score:0, correct:0, total:0, pct:0, chapters:'בדיקה' }]) });
+    log += 'INSERT -> ' + r.status + ' ' + r.statusText + '\n' + (await r.text()).slice(0,300);
+  }catch(e){ log += 'INSERT -> failed: ' + e.message; }
+  out.textContent = log;
+};
+$('dashCsv').onclick = () => {
+  const head = ['שם התלמיד','ציון באחוזים','נקודות','תשובות נכונות','סך שאלות','חומר','תאריך'];
+  const lines = [head.join(',')].concat(dashRows.map(r => [
+    '"' + (r.student || '').replace(/"/g,'""') + '"',
+    r.pct, r.score, r.correct, r.total,
+    '"' + (r.chapters || '') + '"',
+    '"' + (r.created_at || '') + '"'
+  ].join(',')));
+  const blob = new Blob(['\uFEFF' + lines.join('\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ציוני_אזרחות.csv';
+  a.click();
+  setTimeout(()=> URL.revokeObjectURL(a.href), 2000);
+};
+let clearArmed = false;
+$('dashClear').onclick = () => {
+  if(!clearArmed){
+    clearArmed = true;
+    $('dashClear').textContent = 'ללחוץ שוב כדי למחוק';
+    setTimeout(()=>{ clearArmed = false; $('dashClear').textContent = 'מחיקת הרשימה'; }, 4000);
+    return;
+  }
+  clearArmed = false;
+  $('dashClear').textContent = 'מחיקת הרשימה';
+  localSaveAll([]); refreshDash();
+};
+if(SANDBOXED && DB_ON) $('sandNote').classList.remove('hidden');
+if(location.hash === '#dash' || location.hash === '#teacher') showDash();
+
+buildChips(); paintChips();
+</script>
+</body>
+</html>
