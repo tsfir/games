@@ -68,7 +68,8 @@ button{font:inherit;cursor:pointer}
 .hour{margin-top:18px}
 .hour h3{display:inline-flex;align-items:center;gap:8px;font-size:16px;font-weight:600;color:var(--c);margin:0 0 10px}
 .hour h3::before{content:"";width:12px;height:12px;border-radius:50%;background:var(--c)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:10px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media(min-width:640px){.grid{grid-template-columns:repeat(6,minmax(0,1fr))}}
 .slot{position:relative;min-height:56px;border-radius:18px;border:2px solid var(--c);background:color-mix(in srgb,var(--c) 10%,var(--card));color:var(--c);font-family:Fredoka,sans-serif;font-weight:600;font-size:19px;direction:ltr;white-space:nowrap;box-shadow:0 4px 0 color-mix(in srgb,var(--c) 35%,transparent);transition:transform .15s,box-shadow .15s,background .15s}
 .slot:hover{transform:translateY(-3px) rotate(-1deg);box-shadow:0 7px 0 color-mix(in srgb,var(--c) 35%,transparent)}
 .slot.sel{background:var(--c);color:light-dark(#fff,#17121f);animation:pop .35s}
