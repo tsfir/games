@@ -53,7 +53,8 @@ button{font:inherit;cursor:pointer}
 .slot.sel{background:var(--brand);color:var(--brand-ink)}
 .slot.mine{border-color:var(--mine);background:var(--mine-soft);color:var(--mine)}
 .slot.taken{border:1px dashed var(--line);background:var(--taken);color:var(--taken-ink);text-decoration:line-through;cursor:not-allowed}
-.slot small{display:block;font-size:12px;font-weight:500;text-decoration:none;direction:rtl}
+.slot small{display:block;font-size:12px;font-weight:500;text-decoration:none;direction:rtl;white-space:normal;line-height:1.25;margin-top:2px}
+.slot.taken{text-decoration:none}.slot.taken>span{text-decoration:line-through}
 .empty{color:var(--muted);padding:12px 0}
 .bar{position:fixed;inset-inline:0;bottom:0;background:var(--card);border-top:1px solid var(--line);box-shadow:0 -6px 24px rgba(0,0,0,.08);padding:14px max(4vw,16px) calc(14px + env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;transform:translateY(110%);transition:transform .2s}
 .bar.on{transform:none}
@@ -134,15 +135,26 @@ function errorCard(title, text, retry) {
 }
 
 // ===== תצוגת הורים =====
-const state = {name: '', mine: null, taken: new Set(), selected: null, freeOnly: false, busy: false, msg: null};
+const state = {name: '', mine: null, taken: new Set(), names: new Map(), selected: null, freeOnly: false, busy: false, msg: null};
+
+async function getTaken() {
+  try {
+    const rows = await rpc('pm_slots_named');
+    return rows.map(x => ({m: toMin(x.slot), name: x.name || ''}));
+  } catch (e) {
+    const rows = await rpc('pm_taken_slots');
+    return rows.map(x => ({m: toMin(typeof x === 'string' ? x : x.pm_taken_slots), name: ''}));
+  }
+}
 
 async function loadParent(first) {
   try {
-    const [stu, taken] = await Promise.all([rpc('pm_get_student', {p_token: token}), rpc('pm_taken_slots')]);
+    const [stu, taken] = await Promise.all([rpc('pm_get_student', {p_token: token}), getTaken()]);
     if (!stu.length) { errorCard('הקישור אינו תקף', 'לא נמצא תלמיד המשויך לקישור זה. נא לפנות למחנכת הכיתה לקבלת הקישור האישי.'); return false; }
     state.name = stu[0].name;
     state.mine = stu[0].slot ? toMin(stu[0].slot) : null;
-    state.taken = new Set(taken.map(x => toMin(typeof x === 'string' ? x : x.pm_taken_slots)));
+    state.taken = new Set(taken.map(x => x.m));
+    state.names = new Map(taken.map(x => [x.m, x.name]));
     if (state.selected !== null && state.taken.has(state.selected) && state.selected !== state.mine) state.selected = null;
     renderParent();
     return true;
@@ -171,9 +183,10 @@ function renderParent() {
     grid += '<div class="hour"><h3>' + pad(h) + ':00</h3><div class="grid">' + list.map(m => {
       const mine = m === state.mine, taken = state.taken.has(m) && !mine, sel = m === state.selected;
       const cls = 'slot' + (mine ? ' mine' : '') + (taken ? ' taken' : '') + (sel ? ' sel' : '');
-      const sr = mine ? 'השעה שלכם' : taken ? 'תפוס' : 'פנוי';
+      const who = state.names.get(m) || '';
+      const sr = mine ? 'השעה שלכם' : taken ? 'תפוס' + (who ? ', ' + who : '') : 'פנוי';
       return '<button type="button" class="' + cls + '" data-m="' + m + '"' + (taken ? ' disabled' : '') + ' aria-pressed="' + sel + '" aria-label="' + range(m) + ', ' + sr + '">' +
-        fmt(m) + (mine ? '<small>השעה שלכם</small>' : taken ? '<small>תפוס</small>' : '') + '</button>';
+        '<span>' + fmt(m) + '</span>' + (mine ? '<small>השעה שלכם</small>' : taken ? '<small>' + esc(who || 'תפוס') + '</small>' : '') + '</button>';
     }).join('') + '</div></div>';
   }
   if (!grid) grid = '<p class="empty">אין כרגע שעות פנויות.</p>';
