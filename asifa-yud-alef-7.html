@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>אסיפת הורים יא׳7</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Rubik:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light dark;
+--bg:light-dark(#f3f6f5,#0e1716);--card:light-dark(#ffffff,#162321);--ink:light-dark(#14211f,#e8f0ee);--muted:light-dark(#4d5f5b,#a6b8b4);
+--brand:light-dark(#0b5d55,#3fb3a5);--brand-ink:#ffffff;--soft:light-dark(#e3f1ee,#1d3532);--line:light-dark(#d5e0dd,#2a3f3c);
+--mine:light-dark(#c4561a,#f19a5e);--mine-soft:light-dark(#fdebdf,#3a2618);--taken:light-dark(#e9eceb,#202b2a);--taken-ink:light-dark(#7d8a87,#6f7f7c);
+--ok:light-dark(#11663c,#5fd39a);--err:light-dark(#a3231b,#ff8f86)}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 Heebo,Arial,sans-serif;overflow-x:clip;padding-bottom:110px}
+h1,h2{font-family:Rubik,Heebo,sans-serif;margin:0;line-height:1.1;text-wrap:balance}
+.hero{background:var(--brand);color:var(--brand-ink);padding:clamp(28px,6vw,52px) max(5vw,18px) clamp(64px,10vw,90px)}
+.hero h1{font-size:clamp(34px,7vw,52px)}
+.hero .sub{font-size:19px;margin-top:8px;opacity:.95}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.chip{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:6px 14px;font-weight:500;white-space:nowrap}
+main{max-width:760px;margin:-48px auto 0;padding:0 16px;display:grid;gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:clamp(18px,4vw,28px);box-shadow:0 6px 24px rgba(10,40,36,.07)}
+label.lbl{display:block;font-weight:700;margin-bottom:6px}
+.ro{position:relative}
+.ro input{width:100%;font:inherit;font-size:20px;font-weight:700;padding:12px 48px 12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--soft);color:var(--ink);cursor:default}
+.ro svg{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:22px;height:22px;stroke:var(--muted)}
+.note{color:var(--muted);font-size:15px;margin:6px 0 0}
+.status h2{font-size:24px}
+.bigtime{font-family:Rubik,sans-serif;font-size:clamp(40px,10vw,56px);font-weight:700;color:var(--mine);direction:ltr;text-align:right;margin:6px 0 2px;white-space:nowrap}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+button{font:inherit;cursor:pointer}
+.btn{min-height:46px;padding:10px 20px;border-radius:12px;border:1px solid var(--brand);background:var(--brand);color:var(--brand-ink);font-weight:700}
+.btn.ghost{background:transparent;color:var(--brand)}
+.btn.danger{border-color:var(--err);color:var(--err);background:transparent}
+.btn:focus-visible,.slot:focus-visible,.tog input:focus-visible{outline:3px solid var(--mine);outline-offset:2px}
+.btn[disabled]{opacity:.55;cursor:wait}
+.head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 16px}
+.head h2{font-size:24px}
+.count{font-weight:700;color:var(--brand)}
+.tools{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:12px 0 4px}
+.tog{display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer}
+.tog input{width:22px;height:22px;accent-color:var(--brand)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:14px;color:var(--muted)}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-left:5px;border:1px solid var(--line)}
+.hour{margin-top:16px}
+.hour h3{font-size:15px;color:var(--muted);margin:0 0 8px;font-weight:500}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
+.slot{min-height:52px;border-radius:12px;border:1.5px solid var(--brand);background:var(--card);color:var(--brand);font-weight:700;font-size:17px;direction:ltr;white-space:nowrap;transition:background .15s}
+.slot:hover{background:var(--soft)}
+.slot.sel{background:var(--brand);color:var(--brand-ink)}
+.slot.mine{border-color:var(--mine);background:var(--mine-soft);color:var(--mine)}
+.slot.taken{border:1px dashed var(--line);background:var(--taken);color:var(--taken-ink);text-decoration:line-through;cursor:not-allowed}
+.slot small{display:block;font-size:12px;font-weight:500;text-decoration:none;direction:rtl}
+.empty{color:var(--muted);padding:12px 0}
+.bar{position:fixed;inset-inline:0;bottom:0;background:var(--card);border-top:1px solid var(--line);box-shadow:0 -6px 24px rgba(0,0,0,.08);padding:14px max(4vw,16px) calc(14px + env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;transform:translateY(110%);transition:transform .2s}
+.bar.on{transform:none}
+.bar b{font-family:Rubik,sans-serif;font-size:22px;direction:ltr;display:inline-block}
+.msg{border-radius:12px;padding:12px 14px;font-weight:500;margin-top:12px}
+.msg.ok{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)}
+.msg.err{background:color-mix(in srgb,var(--err) 14%,transparent);color:var(--err)}
+.hide{display:none!important}
+table{width:100%;border-collapse:collapse;font-size:16px}
+th,td{text-align:right;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+td.t{direction:ltr;text-align:right;white-space:nowrap;font-weight:700;width:120px}
+td.free{color:var(--muted)}
+.links td{word-break:break-all}
+.links .lnk{font-size:13px;color:var(--muted);direction:ltr;text-align:right}
+.mini{min-height:38px;padding:6px 12px;font-size:15px}
+footer{text-align:center;color:var(--muted);font-size:14px;margin:26px 0}
+@media (prefers-reduced-motion:reduce){.bar,.slot{transition:none}}
+</style>
+</head>
+<body>
+<header class="hero">
+  <h1>אסיפת הורים</h1>
+  <div class="sub">כיתה יא׳7 · תיכון בן גוריון</div>
+  <div class="chips">
+    <span class="chip">יום רביעי, 2.12</span>
+    <span class="chip">15:30 עד 21:30</span>
+    <span class="chip">פגישה של 10 דקות</span>
+  </div>
+</header>
+
+<main id="app">
+  <section class="card" id="loading"><p>טוען נתונים...</p></section>
+</main>
+
+<div class="bar" id="bar" role="region" aria-label="אישור שעה">
+  <div>השעה שבחרתם: <b id="barTime"></b></div>
+  <div class="row" style="margin:0">
+    <button class="btn" id="barOk" type="button">אישור הפגישה</button>
+    <button class="btn ghost" id="barCancel" type="button">ביטול</button>
+  </div>
+</div>
+
+<footer>לשאלות ניתן לפנות למחנכת הכיתה</footer>
+
+<script>
+{
+// ===== הגדרות =====
+const SUPABASE_URL = 'https://lwlvjpivnlhchvmhkyhy.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_5EPchQmGY_C7lfI3UCyy8w_PC_PHYc4';
+const START_MIN = 15 * 60 + 30, SLOT_LEN = 10, SLOT_COUNT = 36;
+const REFRESH_MS = 20000;
+
+const params = new URLSearchParams(location.search);
+const token = (params.get('s') || '').trim();
+const adminKey = (params.get('admin') || '').trim();
+const app = document.getElementById('app');
+const bar = document.getElementById('bar');
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2, '0');
+const fmt = m => pad(Math.floor(m / 60)) + ':' + pad(m % 60);
+const toMin = t => { const [h, m] = String(t).split(':').map(Number); return h * 60 + m; };
+const range = m => fmt(m) + '-' + fmt(m + SLOT_LEN);
+const SLOTS = Array.from({length: SLOT_COUNT}, (_, i) => START_MIN + i * SLOT_LEN);
+
+async function rpc(fn, args) {
+  const headers = {'Content-Type': 'application/json', apikey: SUPABASE_KEY};
+  if (SUPABASE_KEY.startsWith('eyJ')) headers.Authorization = 'Bearer ' + SUPABASE_KEY;
+  const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/' + fn, {method: 'POST', headers, body: JSON.stringify(args || {})});
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+function errorCard(title, text, retry) {
+  app.innerHTML = '<section class="card"><h2 style="font-size:24px">' + esc(title) + '</h2><p>' + esc(text) + '</p>' +
+    (retry ? '<button class="btn" type="button" id="retry">ניסיון נוסף</button>' : '') + '</section>';
+  if (retry) document.getElementById('retry').onclick = () => location.reload();
+}
+
+// ===== תצוגת הורים =====
+const state = {name: '', mine: null, taken: new Set(), selected: null, freeOnly: false, busy: false, msg: null};
+
+async function loadParent(first) {
+  try {
+    const [stu, taken] = await Promise.all([rpc('pm_get_student', {p_token: token}), rpc('pm_taken_slots')]);
+    if (!stu.length) { errorCard('הקישור אינו תקף', 'לא נמצא תלמיד המשויך לקישור זה. נא לפנות למחנכת הכיתה לקבלת הקישור האישי.'); return false; }
+    state.name = stu[0].name;
+    state.mine = stu[0].slot ? toMin(stu[0].slot) : null;
+    state.taken = new Set(taken.map(x => toMin(typeof x === 'string' ? x : x.pm_taken_slots)));
+    if (state.selected !== null && state.taken.has(state.selected) && state.selected !== state.mine) state.selected = null;
+    renderParent();
+    return true;
+  } catch (e) {
+    if (first) errorCard('לא ניתן לטעון את הנתונים', 'ייתכן שיש בעיית חיבור לאינטרנט. נסו שוב בעוד רגע.', true);
+    return false;
+  }
+}
+
+function renderParent() {
+  const free = SLOTS.filter(m => !state.taken.has(m)).length;
+  const lock = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+  const status = state.mine !== null
+    ? '<h2>נרשמתם לאסיפה</h2><div class="bigtime">' + range(state.mine) + '</div><p class="note" style="margin:0">ניתן לבחור שעה אחרת מהרשימה למטה, והשעה תתעדכן.</p>' +
+      '<div class="row"><button class="btn ghost" type="button" id="goPick">שינוי שעה</button><button class="btn danger" type="button" id="cancelBtn">ביטול ההרשמה</button></div>' +
+      '<div id="cancelAsk" class="hide msg err">לבטל את הפגישה בשעה ' + range(state.mine) + '? <div class="row"><button class="btn danger mini" type="button" id="cancelYes">כן, לבטל</button><button class="btn ghost mini" type="button" id="cancelNo">לא</button></div></div>'
+    : '<h2>עדיין לא נקבעה שעה</h2><p class="note" style="font-size:17px">בחרו שעה פנויה מהרשימה למטה ואשרו.</p>';
+  const msg = state.msg ? '<div class="msg ' + state.msg.kind + '" role="status">' + esc(state.msg.text) + '</div>' : '';
+
+  const hours = {};
+  for (const m of SLOTS) (hours[Math.floor(m / 60)] ||= []).push(m);
+  let grid = '';
+  for (const h of Object.keys(hours)) {
+    const list = hours[h].filter(m => !state.freeOnly || !state.taken.has(m) || m === state.mine);
+    if (!list.length) continue;
+    grid += '<div class="hour"><h3>' + pad(h) + ':00</h3><div class="grid">' + list.map(m => {
+      const mine = m === state.mine, taken = state.taken.has(m) && !mine, sel = m === state.selected;
+      const cls = 'slot' + (mine ? ' mine' : '') + (taken ? ' taken' : '') + (sel ? ' sel' : '');
+      const sr = mine ? 'השעה שלכם' : taken ? 'תפוס' : 'פנוי';
+      return '<button type="button" class="' + cls + '" data-m="' + m + '"' + (taken ? ' disabled' : '') + ' aria-pressed="' + sel + '" aria-label="' + range(m) + ', ' + sr + '">' +
+        fmt(m) + (mine ? '<small>השעה שלכם</small>' : taken ? '<small>תפוס</small>' : '') + '</button>';
+    }).join('') + '</div></div>';
+  }
+  if (!grid) grid = '<p class="empty">אין כרגע שעות פנויות.</p>';
+
+  app.innerHTML =
+    '<section class="card"><label class="lbl" for="stName">שם התלמיד/ה</label><div class="ro"><input id="stName" type="text" readonly aria-readonly="true" value="' + esc(state.name) + '">' + lock + '</div>' +
+    '<p class="note">הקישור אישי ומותאם מראש, ולכן לא ניתן לשנות את השם.</p></section>' +
+    '<section class="card status">' + status + msg + '</section>' +
+    '<section class="card" id="pick"><div class="head"><h2>' + (state.mine !== null ? 'החלפת שעה' : 'בחירת שעה') + '</h2><span class="count">' + free + ' מתוך ' + SLOT_COUNT + ' שעות פנויות</span></div>' +
+    '<div class="tools"><label class="tog"><input type="checkbox" id="freeOnly"' + (state.freeOnly ? ' checked' : '') + '> הצגת שעות פנויות בלבד</label>' +
+    '<div class="legend"><span><i style="background:var(--card);border-color:var(--brand)"></i>פנוי</span><span><i style="background:var(--taken)"></i>תפוס</span><span><i style="background:var(--mine-soft);border-color:var(--mine)"></i>השעה שלכם</span></div></div>' +
+    grid + '</section>';
+
+  app.querySelectorAll('.slot:not([disabled])').forEach(b => b.onclick = () => {
+    const m = +b.dataset.m;
+    if (m === state.mine) return;
+    state.selected = state.selected === m ? null : m;
+    state.msg = null;
+    renderParent();
+  });
+  document.getElementById('freeOnly').onchange = e => { state.freeOnly = e.target.checked; renderParent(); };
+  const goPick = document.getElementById('goPick');
+  if (goPick) goPick.onclick = () => document.getElementById('pick').scrollIntoView({behavior: 'smooth'});
+  const cb = document.getElementById('cancelBtn');
+  if (cb) {
+    cb.onclick = () => document.getElementById('cancelAsk').classList.remove('hide');
+    document.getElementById('cancelNo').onclick = () => document.getElementById('cancelAsk').classList.add('hide');
+    document.getElementById('cancelYes').onclick = doCancel;
+  }
+  updateBar();
+}
+
+function updateBar() {
+  if (state.selected === null) { bar.classList.remove('on'); return; }
+  document.getElementById('barTime').textContent = range(state.selected);
+  document.getElementById('barOk').textContent = state.mine !== null ? 'עדכון השעה' : 'אישור הפגישה';
+  bar.classList.add('on');
+}
+
+async function doBook() {
+  if (state.busy || state.selected === null) return;
+  state.busy = true;
+  const ok = document.getElementById('barOk'); ok.disabled = true;
+  const m = state.selected, changed = state.mine !== null;
+  try {
+    const res = await rpc('pm_book', {p_token: token, p_slot: fmt(m)});
+    if (res.ok) {
+      state.selected = null;
+      state.msg = {kind: 'ok', text: (changed ? 'השעה עודכנה ל־' : 'הפגישה נקבעה לשעה ') + range(m) + '. נתראה ביום רביעי, 2.12.'};
+    } else if (res.error === 'taken') {
+      state.selected = null;
+      state.msg = {kind: 'err', text: 'השעה ' + fmt(m) + ' נתפסה ממש עכשיו על ידי הורים אחרים. נא לבחור שעה אחרת.'};
+    } else {
+      state.msg = {kind: 'err', text: 'לא ניתן לשמור את השעה. נא לפנות למחנכת הכיתה.'};
+    }
+  } catch (e) {
+    state.msg = {kind: 'err', text: 'השמירה לא הצליחה בגלל בעיית חיבור. נסו שוב.'};
+  }
+  state.busy = false; ok.disabled = false;
+  await loadParent(false);
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+async function doCancel() {
+  if (state.busy) return;
+  state.busy = true;
+  try {
+    await rpc('pm_cancel', {p_token: token});
+    state.msg = {kind: 'ok', text: 'ההרשמה בוטלה. ניתן לבחור שעה חדשה בכל עת.'};
+  } catch (e) {
+    state.msg = {kind: 'err', text: 'הביטול לא הצליח בגלל בעיית חיבור. נסו שוב.'};
+  }
+  state.busy = false;
+  await loadParent(false);
+}
+
+document.getElementById('barOk').onclick = doBook;
+document.getElementById('barCancel').onclick = () => { state.selected = null; renderParent(); };
+
+// ===== תצוגת מורה =====
+async function loadAdmin() {
+  let d;
+  try { d = await rpc('pm_admin', {p_key: adminKey}); }
+  catch (e) { errorCard('לא ניתן לטעון את הנתונים', 'בדקי את החיבור לאינטרנט.', true); return; }
+  if (!d.ok) { errorCard('אין הרשאה', 'מפתח המורה אינו תקף.'); return; }
+  const base = location.origin + location.pathname + '?s=';
+  const booked = d.students.filter(s => s.slot).length;
+  const missing = d.students.filter(s => !s.slot);
+  app.innerHTML =
+    '<section class="card"><div class="head"><h2>לוח הפגישות</h2><span class="count">' + booked + ' מתוך ' + d.students.length + ' נרשמו</span></div>' +
+    '<div class="row"><button class="btn ghost mini" type="button" id="refresh">רענון</button></div>' +
+    '<table><thead><tr><th>שעה</th><th>תלמיד/ה</th></tr></thead><tbody>' +
+    d.schedule.map(r => '<tr><td class="t">' + range(toMin(r.slot)) + '</td>' + (r.name ? '<td>' + esc(r.name) + '</td>' : '<td class="free">פנוי</td>') + '</tr>').join('') +
+    '</tbody></table></section>' +
+    '<section class="card"><h2 style="font-size:24px">טרם נרשמו (' + missing.length + ')</h2>' +
+    (missing.length ? '<p>' + missing.map(s => esc(s.name)).join(', ') + '</p>' : '<p class="note">כל התלמידים נרשמו.</p>') + '</section>' +
+    '<section class="card"><div class="head"><h2>קישורים אישיים</h2><button class="btn mini" type="button" id="copyAll">העתקת כל הקישורים</button></div>' +
+    '<table class="links"><tbody>' + d.students.map((s, i) =>
+      '<tr><td><b>' + esc(s.name) + '</b><div class="lnk">' + esc(base + s.token) + '</div></td><td style="width:90px"><button class="btn ghost mini" type="button" data-i="' + i + '">העתקה</button></td></tr>').join('') +
+    '</tbody></table><div id="copied" class="msg ok hide" role="status">הועתק</div></section>';
+  const copied = document.getElementById('copied');
+  const copy = async txt => {
+    try { await navigator.clipboard.writeText(txt); copied.classList.remove('hide'); setTimeout(() => copied.classList.add('hide'), 1800); }
+    catch (e) { copied.textContent = 'ההעתקה נחסמה בדפדפן. ניתן לסמן ולהעתיק ידנית.'; copied.classList.remove('hide'); }
+  };
+  app.querySelectorAll('[data-i]').forEach(b => b.onclick = () => {
+    const s = d.students[+b.dataset.i];
+    copy('שלום, זהו הקישור האישי לרישום לאסיפת ההורים של ' + s.name + ' (יא׳7, יום רביעי 2.12):\n' + base + s.token);
+  });
+  document.getElementById('copyAll').onclick = () => copy(d.students.map(s => s.name + ': ' + base + s.token).join('\n'));
+  document.getElementById('refresh').onclick = loadAdmin;
+}
+
+// ===== הפעלה =====
+if (adminKey) {
+  document.title = 'לוח אסיפת הורים יא׳7';
+  loadAdmin();
+} else if (!token) {
+  errorCard('יש לפתוח את הקישור האישי', 'לכל תלמיד/ה נשלח קישור אישי לרישום. נא לפתוח את הקישור המלא שקיבלתם.');
+} else {
+  loadParent(true).then(ok => {
+    if (!ok) return;
+    const timer = setInterval(() => { if (!document.hidden && !state.busy) loadParent(false); }, REFRESH_MS);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && !state.busy) loadParent(false); });
+  });
+}
+}
+</script>
+</body>
+</html>
